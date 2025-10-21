@@ -33,11 +33,11 @@ class Settings(BaseSettings):
             "mysql": {
                 "engine": "tortoise.backends.mysql",
                 "credentials": {
-                    "host": "10.0.36.102",  # Database host address
-                    "port": 3309,  # Database port
-                    "user": "root",  # Database username
-                    "password": "root123",  # Database password
-                    "database": "fastapi",  # Database name
+                    "host": "127.0.0.1",  # Database host address
+                    "port": 3306,  # Database port
+                    "user": "yaoshuai",  # Database username
+                    "password": "yaoshuai",  # Database password
+                    "database": "platform",  # Database name
                 },
             }
         },
