@@ -2,6 +2,7 @@ import os
 import secrets
 import string
 import typing
+import platform
 from typing import ClassVar
 from pydantic_settings import BaseSettings
 
@@ -25,20 +26,54 @@ class Settings(BaseSettings):
     SECRET_KEY: str = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(32))
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 day
+    
+    # 根据操作系统选择数据库配置
+    def get_db_config(self):
+        system = platform.system().lower()
+        if system == "linux":
+            # Linux配置
+            return {
+                "host": "10.0.36.102",  # Database host address
+                "port": 3309,  # Database port
+                "user": "root",  # Database username
+                "password": "root123",  # Database password
+                "database": "test-galaxy",  # Database name
+            }
+        elif system == "windows":
+            # Windows配置
+            return {
+                "host": "127.0.0.1",  # Database host address
+                "port": 3306,  # Database port
+                "user": "yaoshuai",  # Database username
+                "password": "yaoshuai",  # Database password
+                "database": "platform",  # Database name
+            }
+        elif system == "darwin":  # macOS
+            # macOS配置
+            return {
+                "host": "10.0.16.49",  # Database host address
+                "port": 3309,  # Database port
+                "user": "root",  # Database username
+                "password": "root123",  # Database password
+                "database": "test-galaxy",  # Database name
+            }
+        else:
+            # 默认配置
+            return {
+                "host": "localhost",
+                "port": 3306,
+                "user": "root",
+                "password": "root123",
+                "database": "test-galaxy",
+            }
+    
     TORTOISE_ORM: dict = {
         "connections": {
-
             # MySQL/MariaDB configuration
             # Install with: tortoise-orm[asyncmy]
             "mysql": {
                 "engine": "tortoise.backends.mysql",
-                "credentials": {
-                    "host": "127.0.0.1",  # Database host address
-                    "port": 3306,  # Database port
-                    "user": "yaoshuai",  # Database username
-                    "password": "yaoshuai",  # Database password
-                    "database": "platform",  # Database name
-                },
+                "credentials": {},  # 将在 __init__ 中设置
             }
         },
         "apps": {
@@ -50,6 +85,12 @@ class Settings(BaseSettings):
         "use_tz": False,  # Whether to use timezone-aware datetimes
         "timezone": "Asia/Shanghai",  # Timezone setting
     }
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # 设置数据库配置
+        self.TORTOISE_ORM["connections"]["mysql"]["credentials"] = self.get_db_config()
+
     DATETIME_FORMAT: str = "%Y-%m-%d %H:%M:%S"
     LOGLEVEL: ClassVar[str] = 'DEBUG'
     TOKEN_TIME: int = 24 * 60
