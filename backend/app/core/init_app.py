@@ -27,6 +27,12 @@ async def init_db():
         await command.init_db(safe=True)
     except FileExistsError:
         pass
+    except Exception as e:
+        # 忽略索引重复错误 (1061: Duplicate key name)
+        if "Duplicate key name" in str(e):
+            logger.warn(f"索引已存在，忽略: {e}")
+        else:
+            raise
 
     await command.init()
     # try:
@@ -194,7 +200,7 @@ async def init_env():
             # 获取项目
             project = await Project.get(name=project_name)
         except DoesNotExist:
-            logger.warning(f"Project {project_name} not found, skipping...")
+            logger.warn(f"Project {project_name} not found, skipping...")
             continue
 
         # 遍历该项目下的所有环境

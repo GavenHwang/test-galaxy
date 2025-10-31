@@ -115,48 +115,59 @@ const handleSubmit = async () => {
   align-items: center;
   min-height: 100vh;
   background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  padding: 20px;
 }
 
 .login-form {
   width: 100%;
-  max-width: 400px;
-  padding: 2rem;
+  max-width: 420px;
+  padding: 3rem 2.5rem;
   background: white;
-  border-radius: 10px;
-  box-shadow: 0 15px 35px rgba(50, 50, 93, 0.1), 0 5px 15px rgba(0, 0, 0, 0.07);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
 
 .title {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
   color: #2c3e50;
-  font-size: 1.8rem;
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 .input-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.8rem;
 }
 
 label {
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
   color: #34495e;
   font-weight: 500;
+  font-size: 0.95rem;
 }
 
 .input-field {
   width: 100%;
-  padding: 0.8rem;
-  border: 1px solid #e1e5eb;
-  border-radius: 6px;
+  padding: 0.85rem 1rem;
+  border: 2px solid #e1e5eb;
+  border-radius: 8px;
   font-size: 1rem;
-  transition: border-color 0.3s;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  background-color: #f8f9fa;
 }
 
 .input-field:focus {
   border-color: #4d7cff;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(77, 124, 255, 0.15);
+  background-color: #fff;
+  box-shadow: 0 0 0 4px rgba(77, 124, 255, 0.1);
+}
+
+.input-field::placeholder {
+  color: #a0a0a0;
 }
 
 .remember-group {
@@ -179,32 +190,43 @@ label {
 
 .login-button {
   width: 100%;
-  padding: 0.9rem;
+  padding: 1rem;
+  margin-top: 1rem;
   background: linear-gradient(to right, #6a11cb, #2575fc);
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   color: white;
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 1.05rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(106, 17, 203, 0.2);
+  box-shadow: 0 4px 12px rgba(106, 17, 203, 0.3);
+  letter-spacing: 0.5px;
 }
 
 .login-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 7px 14px rgba(106, 17, 203, 0.25);
+  box-shadow: 0 8px 20px rgba(106, 17, 203, 0.4);
+}
+
+.login-button:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .login-button:disabled {
   background: linear-gradient(to right, #b5b5b5, #8a8a8a);
   cursor: not-allowed;
   box-shadow: none;
+  opacity: 0.7;
 }
 
 .error-message {
   color: #e74c3c;
   font-size: 0.85rem;
-  margin-top: 0.3rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #ffe5e5;
+  border-radius: 4px;
+  text-align: center;
 }
 </style>
