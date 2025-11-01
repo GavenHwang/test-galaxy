@@ -37,10 +37,59 @@
     }
 </script>
 <style scoped lang="less">
-.tags{
-    margin: 20px 0 0 20px;
+@import '@/assets/less/variables.less';
+
+.tags {
+  margin: 0;
+  padding: @spacing-md @spacing-xl;
+  background-color: @bg-white;
+  border-bottom: 1px solid #e8e8e8;
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+    
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
 }
-.el-tag{
-    margin-right: 10px;
+
+.el-tag {
+  margin-right: @spacing-sm;
+  cursor: pointer;
+  border-radius: @border-radius-base;
+  transition: @transition-base;
+  font-size: @font-size-sm;
+  padding: 0 @spacing-md;
+  height: 28px;
+  line-height: 28px;
+  background-color: @bg-white;
+  color: @primary-color;
+  border-color: @primary-color;
+  
+  &:hover {
+    transform: translateY(-1px);
+  }
+  
+  &.is-dark {
+    background-color: @primary-color;
+    border-color: @primary-color;
+    color: @text-white;
+    box-shadow: 0 2px 4px @primary-shadow;
+  }
 }
 </style>

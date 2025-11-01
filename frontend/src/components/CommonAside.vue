@@ -1,9 +1,9 @@
 <template>
     <el-aside :width="width">
         <el-menu
-            background-color="#304156"
-            text-color="#bfcbd9"
-            active-text-color="#409eff"
+            background-color="#ffffff"
+            text-color="#303133"
+            active-text-color="#d9232c"
             :collapse="isCollapse"
             :collapse-transition="false"
             :default-active="activeMenu"
@@ -81,6 +81,8 @@ onMounted(() => {
 </script>
 
 <style lang="less" scoped>
+@import '@/assets/less/variables.less';
+
 .icons {
     width: 18px;
     height: 18px;
@@ -91,32 +93,53 @@ onMounted(() => {
     
     .sidebar-title {
         line-height: 48px;
-        color: #ffffff;
+        color: @text-white;
         text-align: center;
-        font-size: 16px;
+        font-size: @font-size-md;
         font-weight: 600;
     }
     
     .sidebar-title-collapsed {
         line-height: 48px;
-        color: #ffffff;
+        color: @text-white;
         text-align: center;
-        font-size: 14px;
+        font-size: @font-size-base;
         font-weight: 600;
     }
 }
 
+:deep(.el-menu-item) {
+    transition: @transition-base;
+    border-left: 4px solid transparent;
+    padding-left: @spacing-lg;
+    height: 48px;
+    line-height: 48px;
+}
+
 :deep(.el-menu-item:hover) {
-    background-color: #25354a !important;
+    background-color: #f5f5f5 !important;
+    color: @primary-color;
 }
 
 :deep(.el-menu-item.is-active) {
-    background-color: #2d3e50 !important;
+    background-color: @bg-white !important;
+    border-left-color: @primary-color;
+    color: @primary-color;
+    font-weight: 500;
+}
+
+:deep(.el-sub-menu__title) {
+    height: 48px;
+    line-height: 48px;
+}
+
+:deep(.el-sub-menu__title:hover) {
+    background-color: #f5f5f5 !important;
 }
 
 .el-aside {
     height: 100%;
-    background-color: #304156;
-    box-shadow: 2px 0 6px rgba(0, 21, 41, 0.35);
+    background-color: @bg-white;
+    box-shadow: 2px 0 6px rgba(0, 21, 41, 0.08);
 }
 </style>

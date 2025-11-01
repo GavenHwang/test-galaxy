@@ -1,0 +1,97 @@
+// ==================== 颜色变量配置 ====================
+// 主题色配置 - 修改这里的值可以全局更改主题颜色
+
+// 主色调（红色系）
+@primary-color: #d9232c;              // 主色
+@primary-hover: #e04f56;              // 悬停色
+@primary-active: #ae1c23;             // 激活/按下色
+@primary-light: #f5c6c9;              // 浅色（禁用状态）
+@primary-lighter: #fef0f1;            // 更浅色（plain 按钮背景）
+@primary-border: #f9c7ca;             // 边框色（plain 按钮）
+@primary-shadow: rgba(217, 35, 44, 0.1);  // 阴影/半透明背景
+
+// 辅助色
+@success-color: #67c23a;              // 成功色（绿色）
+@success-hover: #85ce61;              // 成功色悬停
+@success-light: #f0f9eb;              // 成功色浅背景
+@success-border: #c2e7b0;             // 成功色边框
+
+@warning-color: #e6a23c;              // 警告色（橙色）
+@warning-hover: #ebb563;              // 警告色悬停
+@warning-light: #fdf6ec;              // 警告色浅背景
+@warning-border: #f5dab1;             // 警告色边框
+
+@info-color: #909399;                 // 信息色（灰色）
+@info-hover: #a6a9ad;                 // 信息色悬停
+@info-light: #f4f4f5;                 // 信息色浅背景
+@info-border: #d3d4d6;                // 信息色边框
+
+// 文本颜色
+@text-primary: #333333;               // 主要文本
+@text-secondary: #666666;             // 次要文本
+@text-placeholder: #909399;           // 占位符文本
+@text-disabled: #c0c4cc;              // 禁用文本
+@text-white: #ffffff;                 // 白色文本
+
+// 背景颜色
+@bg-white: #ffffff;                   // 白色背景
+@bg-page: #f0f2f5;                    // 页面背景
+@bg-light: #fafafa;                   // 浅背景（表头等）
+@bg-hover: #f5f7fa;                   // 悬停背景
+
+// 边框颜色
+@border-base: #dcdfe6;                // 基础边框
+@border-light: #e4e7ed;               // 浅边框
+@border-lighter: #ebeef5;             // 更浅边框
+@border-dark: #d3d4d6;                // 深边框
+
+// 阴影
+@box-shadow-base: 0 2px 8px rgba(0, 0, 0, 0.08);      // 基础阴影
+@box-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.12);    // 悬停阴影
+@box-shadow-card: 0 2px 12px 0 rgba(0, 0, 0, 0.1);    // 卡片阴影
+
+// 圆角
+@border-radius-base: 4px;             // 基础圆角
+@border-radius-medium: 6px;           // 中等圆角
+@border-radius-large: 8px;            // 大圆角
+@border-radius-xlarge: 12px;          // 超大圆角
+@border-radius-round: 50%;            // 圆形
+
+// 间距
+@spacing-xs: 4px;                     // 超小间距
+@spacing-sm: 8px;                     // 小间距
+@spacing-md: 12px;                    // 中等间距
+@spacing-lg: 16px;                    // 大间距
+@spacing-xl: 20px;                    // 超大间距
+@spacing-xxl: 24px;                   // 特大间距
+
+// 字体大小
+@font-size-xs: 12px;                  // 超小字体
+@font-size-sm: 13px;                  // 小字体
+@font-size-base: 14px;                // 基础字体
+@font-size-md: 16px;                  // 中等字体
+@font-size-lg: 18px;                  // 大字体
+@font-size-xl: 20px;                  // 超大字体
+@font-size-xxl: 24px;                 // 特大字体
+
+// 过渡动画
+@transition-base: all 0.3s ease;      // 基础过渡
+@transition-fast: all 0.2s ease;      // 快速过渡
+@transition-slow: all 0.4s ease;      // 慢速过渡
+
+// ==================== Element Plus 主题变量覆盖 ====================
+// 这些变量会覆盖 Element Plus 的默认主题色
+:root {
+  --el-color-primary: @primary-color;
+  --el-color-primary-light-3: @primary-hover;
+  --el-color-primary-light-5: #e87b81;
+  --el-color-primary-light-7: #efa7ab;
+  --el-color-primary-light-8: #f3bdc0;
+  --el-color-primary-light-9: #f7d3d5;
+  --el-color-primary-dark-2: @primary-active;
+  
+  --el-color-success: @success-color;
+  --el-color-warning: @warning-color;
+  --el-color-danger: @primary-color;
+  --el-color-info: @info-color;
+}

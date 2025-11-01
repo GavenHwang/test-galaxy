@@ -55,27 +55,33 @@
 </script>
 
 <style lang="less" scoped>
+@import '@/assets/less/variables.less';
+
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
     height: 100%;
-    background-color: #304156; // 添加背景色以匹配侧边栏
+    background: @bg-white;
+    padding: 0 @spacing-xl;
+    box-shadow: @box-shadow-base;
 }
  
 .icons {
     width: 20px;
     height: 20px;
-    color: #fff; // 确保图标颜色与背景对比明显
+    color: @text-primary;
 }
  
 .r-content {
     .user {
         width: 40px;
         height: 40px;
-        border-radius: 50%;
-        object-fit: cover; // 防止图片变形
+        border-radius: @border-radius-round;
+        object-fit: cover;
+        transition: @transition-base;
+        cursor: pointer;
     }
 }
  
@@ -83,18 +89,27 @@
     display: flex;
     align-items: center;
     .el-button {
-        margin-right: 20px;
-        background-color: transparent; // 按钮透明化，融合背景
-        border: none;
+        margin-right: @spacing-xl;
+        background-color: @bg-white;
+        border: 1px solid @border-base;
+        color: @text-primary;
+        transition: @transition-base;
         &:hover {
-            background-color: rgba(255, 255, 255, 0.1); // 悬停效果
+            background-color: @bg-hover;
+            border-color: @primary-color;
+            color: @primary-color;
         }
     }
 }
  
-// 面包屑文字颜色（使用 :deep 穿透 scoped）
+// 面包屑文字颜色(使用 :deep 穿透 scoped)
 :deep(.bread .el-breadcrumb__inner) {
-    color: #fff !important;
+    color: @text-primary !important;
     cursor: pointer !important;
+    font-weight: 500;
+}
+
+:deep(.bread .el-breadcrumb__separator) {
+    color: @text-placeholder !important;
 }
 </style>

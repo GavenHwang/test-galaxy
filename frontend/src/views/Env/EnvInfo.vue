@@ -4,7 +4,7 @@
     <div class="env-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px;">
       <!-- 左侧 -->
       <div style="display: flex; gap: 10px;">
-        <el-dropdown split-button type="primary" @click="handleDropdownClick(selectedProject)">
+        <el-dropdown split-button type="danger" @click="handleDropdownClick(selectedProject)">
           {{ selectedProject }}
           <template #dropdown>
             <el-dropdown-menu>
@@ -18,7 +18,7 @@
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <el-button type="primary" @click="handleAddEnv" :disabled=true>新增环境</el-button>
+        <el-button type="danger" @click="handleAddEnv" :disabled=true>新增环境</el-button>
       </div>
 
       <!-- 右侧 -->
@@ -87,7 +87,7 @@
       </el-table-column>
       <el-table-column fixed="right" label="操作" width="300" align="center">
           <template #default="{ row }">
-            <el-button type="primary" size="small" @click="handleDetail(row.id)">
+            <el-button type="danger" size="small" @click="handleDetail(row.id)">
               详细信息
             </el-button>
             <el-button type="danger" size="small" @click="handleDelete(row.id)">删除</el-button>
@@ -200,19 +200,67 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
+<style scoped lang="less">
+@import '@/assets/less/variables.less';
+
 .env-container {
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  padding: @spacing-xxl;
+  background-color: @bg-white;
+  border-radius: @border-radius-large;
+  box-shadow: @box-shadow-base;
+  min-height: calc(100vh - 180px);
 }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: @spacing-xl;
+  padding-bottom: @spacing-lg;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.cascader-container {
+  flex: 1;
+}
+
+.table-container {
+  margin-top: @spacing-xl;
+}
+
 .domain-link {
-  color: #409EFF;
-  text-decoration: underline;
-  transition: color 0.3s;
+  color: @primary-color;
+  text-decoration: none;
+  transition: @transition-base;
+  border-bottom: 1px dashed @primary-color;
+  
+  &:hover {
+    color: @primary-hover;
+    border-bottom-color: @primary-hover;
+  }
 }
-.domain-link:hover {
-  color: #66b1ff;
+
+:deep(.el-table) {
+  border-radius: @border-radius-large;
+  overflow: hidden;
+  
+  .el-table__header th {
+    background-color: @bg-light;
+    font-weight: 600;
+    color: @text-primary;
+  }
+  
+  .el-table__row {
+    transition: @transition-base;
+    
+    &:hover {
+      background-color: @bg-hover;
+    }
+  }
+}
+
+:deep(.el-pagination) {
+  margin-top: @spacing-xl;
+  padding: @spacing-lg 0;
 }
 </style>

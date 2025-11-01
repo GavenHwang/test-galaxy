@@ -246,16 +246,83 @@ onMounted(() => {
 </script>
 
 <style scoped lang="less">
+.env-container {
+  padding: 24px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  min-height: calc(100vh - 180px);
+}
+
 .user-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+
+  .el-button {
+    height: 36px;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+
+  .el-form {
+    margin-bottom: 0;
+  }
+
+  .el-input {
+    width: 240px;
+    
+    :deep(.el-input__wrapper) {
+      border-radius: 6px;
+    }
+  }
 }
 
-.env-container {
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+.table {
+  .el-table {
+    border-radius: 8px;
+    overflow: hidden;
+    
+    :deep(.el-table__header) {
+      th {
+        background-color: #fafafa;
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+      }
+    }
+
+    :deep(.el-table__row) {
+      transition: all 0.3s;
+      
+      &:hover {
+        background-color: #f5f7fa;
+      }
+    }
+
+    :deep(.el-table__cell) {
+      padding: 14px 0;
+    }
+
+    :deep(.el-button) {
+      border-radius: 4px;
+      font-size: 13px;
+      padding: 6px 12px;
+      transition: all 0.3s;
+      
+      &:hover {
+        transform: translateY(-1px);
+      }
+    }
+  }
+
+  .el-pagination {
+    margin-top: 20px;
+    padding: 16px 0;
+  }
 }
 
 .centered-table {
@@ -265,6 +332,55 @@ onMounted(() => {
   
   :deep(.el-table__header th) {
     text-align: center !important;
+  }
+}
+
+// 对话框样式优化
+:deep(.el-dialog) {
+  border-radius: 12px;
+  
+  .el-dialog__header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f0f0f0;
+    
+    .el-dialog__title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+  }
+
+  .el-dialog__body {
+    padding: 24px;
+  }
+
+  .el-dialog__footer {
+    padding: 16px 24px;
+    border-top: 1px solid #f0f0f0;
+    
+    .dialog-footer {
+      .el-button {
+        border-radius: 6px;
+        padding: 10px 24px;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .el-form-item {
+    margin-bottom: 20px;
+    
+    .el-input {
+      :deep(.el-input__wrapper) {
+        border-radius: 6px;
+      }
+    }
+
+    .el-select {
+      :deep(.el-input__wrapper) {
+        border-radius: 6px;
+      }
+    }
   }
 }
 </style>

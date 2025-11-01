@@ -1,1 +1,336 @@
 @import './reset.less';
+@import './variables.less';
+
+// Element Plus 主题色覆盖
+:root {
+  --el-color-primary: @primary-color;
+  --el-color-primary-light-3: @primary-hover;
+  --el-color-primary-light-5: #e87b81;
+  --el-color-primary-light-7: #efa7ab;
+  --el-color-primary-light-8: #f3bdc0;
+  --el-color-primary-light-9: #f7d3d5;
+  --el-color-primary-dark-2: @primary-active;
+}
+
+// Element Plus 按钮样式优化
+.el-button--primary {
+  background-color: @primary-color;
+  border-color: @primary-color;
+  
+  &:hover,
+  &:focus {
+    background-color: @primary-hover;
+    border-color: @primary-hover;
+  }
+  
+  &:active {
+    background-color: @primary-active;
+    border-color: @primary-active;
+  }
+}
+
+.el-button--success {
+  background-color: @success-color;
+  border-color: @success-color;
+  
+  &:hover,
+  &:focus {
+    background-color: @success-hover;
+    border-color: @success-hover;
+  }
+}
+
+.el-button--warning {
+  background-color: @warning-color;
+  border-color: @warning-color;
+  
+  &:hover,
+  &:focus {
+    background-color: @warning-hover;
+    border-color: @warning-hover;
+  }
+}
+
+.el-button--danger {
+  background-color: @primary-color;
+  border-color: @primary-color;
+  
+  &:hover,
+  &:focus {
+    background-color: @primary-hover;
+    border-color: @primary-hover;
+  }
+  
+  &:active {
+    background-color: @primary-active;
+    border-color: @primary-active;
+  }
+}
+
+.el-button--info {
+  background-color: @info-color;
+  border-color: @info-color;
+  
+  &:hover,
+  &:focus {
+    background-color: @info-hover;
+    border-color: @info-hover;
+  }
+}
+
+// plain 按钮样式
+.el-button--primary.is-plain {
+  color: @primary-color;
+  background-color: @primary-lighter;
+  border-color: @primary-border;
+  
+  &:hover,
+  &:focus {
+    background-color: @primary-color;
+    border-color: @primary-color;
+    color: @text-white;
+  }
+}
+
+.el-button--danger.is-plain {
+  color: @primary-color;
+  background-color: @primary-lighter;
+  border-color: @primary-border;
+  
+  &:hover,
+  &:focus {
+    background-color: @primary-color;
+    border-color: @primary-color;
+    color: @text-white;
+  }
+}
+
+.el-button--success.is-plain {
+  color: @success-color;
+  background-color: @success-light;
+  border-color: @success-border;
+  
+  &:hover,
+  &:focus {
+    background-color: @success-color;
+    border-color: @success-color;
+    color: @text-white;
+  }
+}
+
+.el-button--warning.is-plain {
+  color: @warning-color;
+  background-color: @warning-light;
+  border-color: @warning-border;
+  
+  &:hover,
+  &:focus {
+    background-color: @warning-color;
+    border-color: @warning-color;
+    color: @text-white;
+  }
+}
+
+.el-button--info.is-plain {
+  color: @info-color;
+  background-color: @info-light;
+  border-color: @info-border;
+  
+  &:hover,
+  &:focus {
+    background-color: @info-color;
+    border-color: @info-color;
+    color: @text-white;
+  }
+}
+
+// 下拉菜单样式优化
+.el-dropdown-menu__item:hover {
+  background-color: @primary-shadow;
+  color: @primary-color;
+}
+
+// 分页样式统一
+.el-pagination {
+  .el-pager li.is-active {
+    background-color: @primary-color !important;
+    color: @text-white;
+  }
+  
+  .el-pager li:hover {
+    color: @primary-color;
+  }
+  
+  button:hover {
+    color: @primary-color;
+  }
+}
+
+// 表格样式优化
+.el-table {
+  th.el-table__cell {
+    background-color: @bg-light !important;
+  }
+  
+  .el-table__row:hover > td {
+    background-color: @bg-hover !important;
+  }
+}
+
+// 链接颜色统一
+a {
+  color: @primary-color;
+  transition: @transition-base;
+  
+  &:hover {
+    color: @primary-hover;
+  }
+}
+
+// text 类型按钮统一
+.el-button--text {
+  color: @primary-color;
+  
+  &:hover,
+  &:focus {
+    color: @primary-hover;
+    background-color: @primary-shadow;
+  }
+}
+
+// 下拉按钮统一
+.el-dropdown__popper {
+  .el-dropdown-menu__item {
+    &:hover {
+      background-color: @primary-shadow;
+      color: @primary-color;
+    }
+  }
+}
+
+// 级联选择器激活项
+.el-cascader-panel {
+  .el-cascader-node.is-active {
+    color: @primary-color;
+  }
+  
+  .el-cascader-node:hover {
+    background-color: @primary-shadow;
+  }
+}
+
+// 输入框聚焦边框
+.el-input__wrapper {
+  &.is-focus {
+    box-shadow: 0 0 0 1px @primary-color inset;
+  }
+}
+
+.el-textarea__inner {
+  &:focus {
+    border-color: @primary-color;
+  }
+}
+
+// select 选择器
+.el-select-dropdown__item {
+  &.selected {
+    color: @primary-color;
+    font-weight: 500;
+  }
+  
+  &:hover {
+    background-color: @primary-shadow;
+  }
+}
+
+// 标签页
+.el-tabs__item {
+  &.is-active {
+    color: @primary-color;
+  }
+  
+  &:hover {
+    color: @primary-color;
+  }
+}
+
+.el-tabs__active-bar {
+  background-color: @primary-color;
+}
+
+// Switch 开关
+.el-switch.is-checked {
+  .el-switch__core {
+    background-color: @primary-color;
+    border-color: @primary-color;
+  }
+}
+
+// Checkbox 复选框
+.el-checkbox__input.is-checked {
+  .el-checkbox__inner {
+    background-color: @primary-color;
+    border-color: @primary-color;
+  }
+}
+
+// Radio 单选框
+.el-radio__input.is-checked {
+  .el-radio__inner {
+    background-color: @primary-color;
+    border-color: @primary-color;
+  }
+}
+
+// 按钮加载状态统一
+.el-button.is-loading {
+  &.el-button--primary,
+  &.el-button--danger {
+    background-color: @primary-hover;
+    border-color: @primary-hover;
+  }
+}
+
+// 按钮禁用状态
+.el-button.is-disabled {
+  &.el-button--primary,
+  &.el-button--danger {
+    background-color: @primary-light;
+    border-color: @primary-light;
+    color: @text-white;
+  }
+  
+  &.is-plain {
+    background-color: @primary-lighter;
+    border-color: @primary-border;
+    color: @primary-light;
+  }
+}
+
+// 分割按钮统一
+.el-button-group {
+  .el-button--primary,
+  .el-button--danger {
+    &:hover,
+    &:focus {
+      background-color: @primary-hover;
+      border-color: @primary-hover;
+    }
+  }
+}
+
+// 下拉分割按钮
+.el-dropdown {
+  .el-button--primary,
+  .el-button--danger {
+    background-color: @primary-color;
+    border-color: @primary-color;
+    
+    &:hover,
+    &:focus {
+      background-color: @primary-hover;
+      border-color: @primary-hover;
+    }
+  }
+}

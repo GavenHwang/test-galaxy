@@ -29,7 +29,7 @@
             </el-input>
         </div>
         <el-button
-          type="primary"
+          type="danger"
           :icon="Refresh"
           @click="fetchEnvVersion"
           style="margin-right: 10px"
@@ -201,19 +201,24 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
+<style scoped lang="less">
+@import '@/assets/less/variables.less';
+
 .env-container {
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  padding: @spacing-xxl;
+  background-color: @bg-white;
+  border-radius: @border-radius-large;
+  box-shadow: @box-shadow-base;
+  min-height: calc(100vh - 180px);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: @spacing-xl;
+  padding-bottom: @spacing-lg;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .cascader-container {
@@ -223,15 +228,62 @@ onMounted(() => {
 .actions {
   display: flex;
   align-items: center;
+  gap: @spacing-md;
+  
+  .el-button {
+    border-radius: @border-radius-medium;
+    height: 36px;
+    font-weight: 500;
+  }
 }
 
 .table-container {
-  margin-top: 20px;
+  margin-top: @spacing-xl;
 }
 
-/* 分页样式：右下侧对齐 */
-.pagination {
-  margin-top: 20px;
-  text-align: right;
+:deep(.el-table) {
+  border-radius: @border-radius-large;
+  overflow: hidden;
+  
+  .el-table__header th {
+    background-color: @bg-light;
+    font-weight: 600;
+    color: @text-primary;
+  }
+  
+  .el-table__row {
+    transition: @transition-base;
+    
+    &:hover {
+      background-color: @bg-hover;
+    }
+  }
+  
+  .el-button--text {
+    color: @primary-color;
+    transition: @transition-base;
+    
+    &:hover {
+      color: @primary-hover;
+      background-color: @primary-shadow;
+    }
+  }
+}
+
+:deep(.el-pagination) {
+  margin-top: @spacing-xl;
+  padding: @spacing-lg 0;
+}
+
+:deep(.el-cascader) {
+  .el-input__wrapper {
+    border-radius: @border-radius-medium;
+  }
+}
+
+:deep(.el-input) {
+  .el-input__wrapper {
+    border-radius: @border-radius-medium;
+  }
 }
 </style>
