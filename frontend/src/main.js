@@ -6,6 +6,7 @@ import 'element-plus/dist/index.css'
 import '@/assets/less/index.less'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { createPinia } from 'pinia'
+import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 // 引入mock,打开这行，数据按照mock进行展示
 // import '@/api/mock.js'
 import api from '@/api/api'
@@ -14,7 +15,9 @@ const app = createApp(App)
 
 // 注册函数请求的方法
 app.config.globalProperties.$api = api
-app.use(ElementPlus)
+app.use(ElementPlus, {
+  locale: zhCn,
+})
 app.use(pinia)
 app.use(router).mount('#app')
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {

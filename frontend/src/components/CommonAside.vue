@@ -112,8 +112,8 @@ onMounted(() => {
     transition: @transition-base;
     border-left: 4px solid transparent;
     padding-left: @spacing-lg;
-    height: 48px;
-    line-height: 48px;
+    height: 42px;
+    line-height: 42px;
 }
 
 :deep(.el-menu-item:hover) {
@@ -129,12 +129,22 @@ onMounted(() => {
 }
 
 :deep(.el-sub-menu__title) {
-    height: 48px;
-    line-height: 48px;
+    height: 42px;
+    line-height: 42px;
+    border-left: 4px solid transparent;
+    padding-left: @spacing-lg !important;
 }
 
 :deep(.el-sub-menu__title:hover) {
     background-color: #f5f5f5 !important;
+}
+
+// 子菜单项样式
+:deep(.el-menu-item-group__title) {
+    padding: 0;
+    height: 0;
+    line-height: 0;
+    overflow: hidden;
 }
 
 .el-aside {
