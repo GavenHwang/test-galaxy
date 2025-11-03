@@ -10,6 +10,10 @@
   --el-color-primary-light-8: #f3bdc0;
   --el-color-primary-light-9: #f7d3d5;
   --el-color-primary-dark-2: @primary-active;
+  
+  // 覆盖 Element Plus 默认的蓝色，全部改为主题红色
+  --el-color-primary-light-9: #f7d3d5;
+  --el-bg-color-overlay: @primary-shadow;
 }
 
 // Element Plus 按钮样式优化
@@ -150,19 +154,111 @@
   color: @primary-color;
 }
 
-// 分页样式统一
+// 分页样式统一与优化
 .el-pagination {
-  .el-pager li.is-active {
-    background-color: @primary-color !important;
-    color: @text-white;
+  display: flex;
+  align-items: center;
+  gap: @spacing-sm;
+  padding: @spacing-lg 0;
+  
+  // 分页按钮（上一页、下一页）
+  button {
+    background-color: @bg-white;
+    border: 1px solid @border-base;
+    border-radius: @border-radius-base;
+    color: @text-primary;
+    transition: @transition-base;
+    min-width: 32px;
+    height: 32px;
+    
+    &:hover:not(:disabled) {
+      border-color: @primary-color;
+      color: @primary-color;
+      background-color: @primary-shadow;
+    }
+    
+    &:disabled {
+      background-color: @bg-light;
+      border-color: @border-lighter;
+      color: @text-disabled;
+      cursor: not-allowed;
+    }
   }
   
-  .el-pager li:hover {
-    color: @primary-color;
+  // 页码列表
+  .el-pager {
+    display: flex;
+    gap: @spacing-xs;
+    
+    li {
+      background-color: @bg-white;
+      border: 1px solid @border-base;
+      border-radius: @border-radius-base;
+      color: @text-primary;
+      transition: @transition-base;
+      min-width: 32px;
+      height: 32px;
+      line-height: 30px;
+      font-weight: 500;
+      cursor: pointer;
+      
+      &:hover {
+        border-color: @primary-color;
+        color: @primary-color;
+        background-color: @primary-shadow;
+      }
+      
+      &.is-active {
+        background-color: @primary-color !important;
+        border-color: @primary-color !important;
+        color: @text-white !important;
+        box-shadow: 0 2px 4px @primary-shadow;
+      }
+      
+      &.more {
+        border: none;
+        background: transparent;
+        
+        &:hover {
+          color: @primary-color;
+          background: transparent;
+        }
+      }
+    }
   }
   
-  button:hover {
-    color: @primary-color;
+  // 每页条数选择器
+  .el-pagination__sizes {
+    .el-select {
+      .el-input__wrapper {
+        border-radius: @border-radius-base;
+        transition: @transition-base;
+        
+        &:hover {
+          border-color: @primary-color;
+        }
+      }
+    }
+  }
+  
+  // 跳转输入框
+  .el-pagination__jump {
+    .el-input__wrapper {
+      width: 50px;
+      border-radius: @border-radius-base;
+      transition: @transition-base;
+      
+      &:hover {
+        border-color: @primary-color;
+      }
+    }
+  }
+  
+  // 文字颜色
+  .el-pagination__total,
+  .el-pagination__jump {
+    color: @text-secondary;
+    font-size: @font-size-sm;
   }
 }
 
@@ -198,24 +294,60 @@ a {
   }
 }
 
-// 下拉按钮统一
-.el-dropdown__popper {
+// 下拉按钮统一（包括级联选择器）
+.el-dropdown__popper,
+.el-popper.is-light {
   .el-dropdown-menu__item {
+    color: @text-primary;
+    
     &:hover {
-      background-color: @primary-shadow;
-      color: @primary-color;
+      background-color: @primary-shadow !important;
+      color: @primary-color !important;
     }
   }
 }
 
 // 级联选择器激活项
 .el-cascader-panel {
-  .el-cascader-node.is-active {
-    color: @primary-color;
+  background-color: @bg-white !important;
+  
+  .el-cascader-menu {
+    background-color: @bg-white !important;
   }
   
-  .el-cascader-node:hover {
-    background-color: @primary-shadow;
+  .el-cascader-node {
+    background-color: transparent !important;
+    
+    &.is-active {
+      color: @primary-color !important;
+      background-color: transparent !important;
+      
+      .el-cascader-node__label {
+        color: @primary-color !important;
+      }
+    }
+    
+    &:hover {
+      background-color: @primary-shadow !important;
+      
+      .el-cascader-node__label {
+        color: @primary-color !important;
+      }
+    }
+    
+    &.in-active-path {
+      color: @primary-color !important;
+      background-color: transparent !important;
+      
+      .el-cascader-node__label {
+        color: @primary-color !important;
+      }
+    }
+  }
+  
+  // 级联节点标签
+  .el-cascader-node__label {
+    color: @text-primary;
   }
 }
 
@@ -232,15 +364,56 @@ a {
   }
 }
 
-// select 选择器
+// select 选择器样式统一
+.el-select {
+  // 输入框聚焦时的边框颜色
+  .el-input__wrapper {
+    transition: @transition-base;
+    border-radius: @border-radius-base;
+    
+    &.is-focus {
+      box-shadow: 0 0 0 1px @primary-color inset !important;
+    }
+    
+    &:hover:not(.is-focus) {
+      border-color: @primary-color;
+    }
+  }
+}
+
+// 下拉选项样式（与级联选择器保持一致）
+.el-select-dropdown {
+  background-color: @bg-white;
+  border-radius: @border-radius-medium;
+  box-shadow: @box-shadow-card;
+}
+
 .el-select-dropdown__item {
+  color: @text-primary;
+  transition: @transition-fast;
+  border-radius: @border-radius-base;
+  margin: 2px @spacing-xs;
+  padding: 0 @spacing-md;
+  background-color: transparent;
+  
   &.selected {
     color: @primary-color;
     font-weight: 500;
+    background-color: @primary-shadow;
+    
+    &::after {
+      color: @primary-color;
+    }
   }
   
   &:hover {
     background-color: @primary-shadow;
+    color: @primary-color;
+  }
+  
+  &.hover {
+    background-color: @primary-shadow;
+    color: @primary-color;
   }
 }
 
@@ -331,6 +504,48 @@ a {
     &:focus {
       background-color: @primary-hover;
       border-color: @primary-hover;
+    }
+  }
+}
+
+// 标签关闭按钮统一样式
+.el-tag {
+  .el-icon {
+    color: @tag-close-color !important;
+    transition: @transition-fast;
+    
+    &:hover {
+      color: @tag-close-hover !important;
+    }
+  }
+  
+  .el-tag__close {
+    color: @tag-close-color !important;
+    transition: @transition-fast;
+    
+    &:hover {
+      color: @text-white !important;
+      background-color: @tag-close-hover !important;
+    }
+  }
+  
+  // dark 效果下的关闭按钮使用白色
+  &.el-tag--dark {
+    .el-icon {
+      color: rgba(255, 255, 255, 0.8) !important;
+      
+      &:hover {
+        color: @text-white !important;
+      }
+    }
+    
+    .el-tag__close {
+      color: rgba(255, 255, 255, 0.8) !important;
+      
+      &:hover {
+        color: @text-white !important;
+        background-color: rgba(255, 255, 255, 0.2) !important;
+      }
     }
   }
 }

@@ -84,12 +84,33 @@
   &:hover {
     transform: translateY(-1px);
   }
+}
+
+// 选中状态的标签（dark 效果）
+:deep(.el-tag.el-tag--dark) {
+  background-color: @primary-color !important;
+  border-color: @primary-color !important;
+  color: @text-white !important;
+  box-shadow: 0 2px 4px @primary-shadow;
+}
+
+// 确保关闭按钮样式生效
+:deep(.el-tag__close) {
+  color: @tag-close-color;
+  transition: @transition-fast;
   
-  &.is-dark {
-    background-color: @primary-color;
-    border-color: @primary-color;
+  &:hover {
     color: @text-white;
-    box-shadow: 0 2px 4px @primary-shadow;
+    background-color: @tag-close-hover;
+  }
+}
+
+:deep(.el-tag--dark .el-tag__close) {
+  color: rgba(255, 255, 255, 0.8);
+  
+  &:hover {
+    color: @text-white;
+    background-color: rgba(255, 255, 255, 0.2);
   }
 }
 </style>

@@ -29,7 +29,7 @@
         <el-table-column prop="last_time" label="最后登录时间" align="center"/>
         <el-table-column fixed="right" label="操作" width="200" align="center">
           <template #default="{ row }">
-            <el-button type="primary" size="small" @click="handleRestPwd(row.id)">
+            <el-button type="danger" size="small" plain @click="handleRestPwd(row.id)">
               重置密码
             </el-button>
             <el-button type="danger" size="small" @click="handleDelete(row.id)">删除</el-button>

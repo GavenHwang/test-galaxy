@@ -2,10 +2,19 @@
     <div class="header">
         <div class="l-content">
             <el-button size="small" @click="handleCollapse">
-                <component class="icons" is="menu"></component>
+                <el-icon class="icons">
+                    <Fold v-if="!isCollapse" />
+                    <Expand v-else />
+                </el-icon>
             </el-button>
             <el-breadcrumb separator="/" class="bread">
-                <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+                <el-breadcrumb-item 
+                    v-for="(item, index) in breadcrumbList" 
+                    :key="index"
+                    :to="item.path ? { path: item.path } : undefined"
+                >
+                    {{ item.label }}
+                </el-breadcrumb-item>
             </el-breadcrumb>
         </div>
         <div class="r-content">
@@ -25,20 +34,62 @@
 </template>
 
 <script setup lang="ts">
-    import { ref,getCurrentInstance} from 'vue'
+    import { ref, getCurrentInstance, computed } from 'vue'
     import { useRouter, useRoute } from 'vue-router'
+    import { Fold, Expand } from '@element-plus/icons-vue'
     // 使用pinia
     import {useAllDataStore} from '@/stores'
 
     const {proxy} = getCurrentInstance()
     const router = useRouter()
+    const route = useRoute()
+    const store = useAllDataStore()
+    
+    // 路由元信息映射
+    const routeMetaMap = {
+        '/home': { label: '首页' },
+        '/env/info': { label: '环境信息', parent: '环境' },
+        '/env/version': { label: '组件版本', parent: '环境' },
+        '/env/compare': { label: '版本比较', parent: '环境' },
+        '/env/detail': { label: '环境详情', parent: '环境' },
+        '/env/history': { label: '历史版本', parent: '环境' },
+        '/user': { label: '用户管理' },
+    }
+    
+    // 动态生成面包屑
+    const breadcrumbList = computed(() => {
+        const path = route.path
+        const breadcrumbs = [{ label: '首页', path: '/home' }]
+        
+        // 如果不是首页，添加当前页面的面包屑
+        if (path !== '/home') {
+            // 处理带参数的路由（如 /env/detail/123）
+            let matchedPath = path
+            Object.keys(routeMetaMap).forEach(key => {
+                if (path.startsWith(key)) {
+                    matchedPath = key
+                }
+            })
+            
+            const meta = routeMetaMap[matchedPath]
+            if (meta) {
+                // 如果有父级，先添加父级
+                if (meta.parent) {
+                    breadcrumbs.push({ label: meta.parent, path: undefined })
+                }
+                // 添加当前页
+                breadcrumbs.push({ label: meta.label, path: undefined })
+            }
+        }
+        
+        return breadcrumbs
+    })
     // 退出登录
     const handleExit = async ()=>{
         await proxy.$api.logout()
         localStorage.removeItem('token')
         
         // 清除tags只保留首页
-        const store = useAllDataStore()
         store.initTags()
         router.push('/login')
     }
@@ -46,7 +97,8 @@
     const getImageUrl = (user)=>{
         return new URL(`../assets/images/${user}.png`, import.meta.url).href
     }
-    const store = useAllDataStore()
+    // 获取折叠状态
+    const isCollapse = computed(() => store.state.isCollapse)
     // 方法
     function handleCollapse(){
         console.log(store)

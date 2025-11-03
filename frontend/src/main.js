@@ -1,9 +1,9 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import '@/assets/less/index.less'
 import router from './router'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import '@/assets/less/index.less'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { createPinia } from 'pinia'
 // 引入mock,打开这行，数据按照mock进行展示
