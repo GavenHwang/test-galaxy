@@ -294,9 +294,15 @@ a {
   }
 }
 
-// 下拉按钮统一（包括级联选择器）
+// 下拉按钮统一（包括级联选择器、个人中心下拉框）
 .el-dropdown__popper,
 .el-popper.is-light {
+  background-color: @bg-white !important;
+  
+  .el-dropdown-menu {
+    background-color: @bg-white !important;
+  }
+  
   .el-dropdown-menu__item {
     color: @text-primary;
     
