@@ -66,3 +66,100 @@ export const getRoles = () => {
     method: 'get'
   })
 }
+
+/**
+ * 页面元素管理API
+ */
+
+// 创建页面元素
+export const createElement = (data) => {
+  return request({
+    url: '/api/ui-test/elements',
+    method: 'post',
+    data
+  })
+}
+
+// 获取页面元素列表
+export const getElements = (params) => {
+  return request({
+    url: '/api/ui-test/elements',
+    method: 'get',
+    params
+  })
+}
+
+// 获取单个页面元素详情
+export const getElementDetail = (elementId) => {
+  return request({
+    url: `/api/ui-test/elements/${elementId}`,
+    method: 'get'
+  })
+}
+
+// 更新页面元素
+export const updateElement = (elementId, data) => {
+  return request({
+    url: `/api/ui-test/elements/${elementId}`,
+    method: 'put',
+    data
+  })
+}
+
+// 删除页面元素
+export const deleteElement = (elementId) => {
+  return request({
+    url: `/api/ui-test/elements/${elementId}`,
+    method: 'delete'
+  })
+}
+
+// 批量创建页面元素
+export const batchCreateElements = (data) => {
+  return request({
+    url: '/api/ui-test/elements/batch',
+    method: 'post',
+    data
+  })
+}
+
+// 获取元素关联的测试用例
+export const getElementRelatedCases = (elementId) => {
+  return request({
+    url: `/api/ui-test/elements/${elementId}/related-cases`,
+    method: 'get'
+  })
+}
+
+// 获取元素权限
+export const getElementPermissions = (elementId) => {
+  return request({
+    url: `/api/ui-test/elements/${elementId}/permissions`,
+    method: 'get'
+  })
+}
+
+// 设置元素权限
+export const setElementPermissions = (elementId, data) => {
+  return request({
+    url: `/api/ui-test/elements/${elementId}/permissions`,
+    method: 'post',
+    data
+  })
+}
+
+// 获取页面列表
+export const getPages = () => {
+  return request({
+    url: '/api/ui-test/elements/pages/list',
+    method: 'get'
+  })
+}
+
+// 获取模块列表
+export const getModules = () => {
+  return request({
+    url: '/api/ui-test/elements/modules/list',
+    method: 'get'
+  })
+}
