@@ -1,8 +1,11 @@
 import bcrypt
 from tortoise import fields
+from tortoise.fields import ReverseRelation
 from tortoise.indexes import Index
 
 from .base import BaseModel, TimestampMixin
+
+__all__ = ['User', 'Role', 'Menu']
 
 
 class User(BaseModel, TimestampMixin):
@@ -17,10 +20,11 @@ class User(BaseModel, TimestampMixin):
     is_active = fields.BooleanField(default=True, index=True, description='账号激活状态')
     is_delete = fields.BooleanField(default=False, description='账号是否删除')
     last_login_time = fields.DatetimeField(null=True, index=True, description='最后登录时间')
-    role = fields.ForeignKeyField('models.Role', related_name='users', n_delete=fields.CASCADE, description='关联角色')
+    role = fields.ForeignKeyField('models.Role', related_name='users', on_delete=fields.CASCADE, description='关联角色')
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         table = 'user'
+        abstract = False
         indexes = (
             # 复合索引（标准写法）
             Index(
@@ -97,8 +101,9 @@ class Role(BaseModel, TimestampMixin):
     desc = fields.CharField(max_length=50, unique=True, description='角色描述')
     menus = fields.ManyToManyField("models.Menu", related_name="role_menus")
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         table = 'role'
+        abstract = False
 
     def __str__(self):
         return self.name
@@ -120,9 +125,13 @@ class Menu(BaseModel, TimestampMixin):
         null=True,
         description="父菜单（关联自身，支持递归查询）"
     )
+    
+    # 类型提示：声明反向关系字段，解决类型检查器无法识别的问题
+    children: ReverseRelation["Menu"]
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         table = "menu"
+        abstract = False
 
     async def get_all_children(self):
         children = await self.children.all()

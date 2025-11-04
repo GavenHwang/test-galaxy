@@ -51,10 +51,10 @@ class Settings(BaseSettings):
         elif system == "darwin":  # macOS
             # macOS配置
             return {
-                "host": "10.0.16.49",  # Database host address
-                "port": 3309,  # Database port
+                "host": "127.0.0.1",  # Database host address
+                "port": 3306,  # Database port
                 "user": "root",  # Database username
-                "password": "root123",  # Database password
+                "password": "Haha123456.",  # Database password
                 "database": "test-galaxy",  # Database name
             }
         else:

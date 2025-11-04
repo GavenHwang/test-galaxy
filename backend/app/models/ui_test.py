@@ -7,6 +7,15 @@ from tortoise import fields
 
 from app.models.base import BaseModel, TimestampMixin
 
+__all__ = [
+    'SelectorType', 'ActionType', 'CasePriority', 'CaseStatus', 
+    'TaskStatus', 'TaskContentType', 'ExecutionStatus',
+    'TestCommonUser', 'TestUIElement', 'TestUIElementPermission',
+    'TestUICase', 'TestUICasePermission', 'TestUIStep', 'TestUICaseSuite',
+    'TestUICasesSuitesRelation', 'TestUITask', 'TestUITaskContent',
+    'TestUIReport', 'TestUICaseExecutionRecord', 'TestUICaseStepExecutionRecord'
+]
+
 
 # ==================== 枚举定义 ====================
 
@@ -91,9 +100,10 @@ class TestCommonUser(BaseModel, TimestampMixin):
     description = fields.TextField(null=True, description="描述")
     created_by = fields.CharField(max_length=50, description="创建人")
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         table = "test_common_users"
         table_description = "测试用户表"
+        abstract = False
 
 
 class TestUIElement(BaseModel, TimestampMixin):
@@ -110,9 +120,10 @@ class TestUIElement(BaseModel, TimestampMixin):
     steps: fields.ReverseRelation["TestUIStep"]
     permissions: fields.ReverseRelation["TestUIElementPermission"]
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         table = "test_ui_elements"
         table_description = "页面元素表"
+        abstract = False
 
 
 class TestUIElementPermission(BaseModel):
@@ -126,10 +137,11 @@ class TestUIElementPermission(BaseModel):
     test_user_role = fields.CharField(max_length=100, description="测试用户角色")
     created_time = fields.DatetimeField(auto_now_add=True, description="创建时间")
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         table = "test_ui_element_permissions"
         table_description = "页面元素权限关联表"
         unique_together = (("element", "test_user_role"),)
+        abstract = False
 
 
 class TestUICase(BaseModel, TimestampMixin):
@@ -150,9 +162,10 @@ class TestUICase(BaseModel, TimestampMixin):
     suite_relations: fields.ReverseRelation["TestUICasesSuitesRelation"]
     execution_records: fields.ReverseRelation["TestUICaseExecutionRecord"]
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         table = "test_ui_cases"
         table_description = "测试用例表"
+        abstract = False
 
 
 class TestUICasePermission(BaseModel):
@@ -166,10 +179,11 @@ class TestUICasePermission(BaseModel):
     test_user_role = fields.CharField(max_length=100, description="测试用户角色")
     created_time = fields.DatetimeField(auto_now_add=True, description="创建时间")
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         table = "test_ui_case_permissions"
         table_description = "测试用例权限关联表"
         unique_together = (("test_case", "test_user_role"),)
+        abstract = False
 
 
 class TestUIStep(BaseModel):
@@ -195,9 +209,10 @@ class TestUIStep(BaseModel):
     description = fields.TextField(description="步骤描述")
     sort_order = fields.IntField(default=0, description="排序序号")
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         table = "test_ui_steps"
         table_description = "测试步骤表"
+        abstract = False
 
 
 class TestUICaseSuite(BaseModel, TimestampMixin):
@@ -211,9 +226,10 @@ class TestUICaseSuite(BaseModel, TimestampMixin):
     case_relations: fields.ReverseRelation["TestUICasesSuitesRelation"]
     task_contents: fields.ReverseRelation["TestUITaskContent"]
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         table = "test_ui_case_suites"
         table_description = "测试套件表"
+        abstract = False
 
 
 class TestUICasesSuitesRelation(BaseModel):
@@ -234,10 +250,11 @@ class TestUICasesSuitesRelation(BaseModel):
     sort_order = fields.IntField(default=0, description="排序序号")
     created_time = fields.DatetimeField(auto_now_add=True, description="创建时间")
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         table = "test_ui_cases_suites_relation"
         table_description = "测试套件用例关联表"
         unique_together = (("test_suite", "test_case"),)
+        abstract = False
 
 
 class TestUITask(BaseModel):
@@ -256,9 +273,10 @@ class TestUITask(BaseModel):
     contents: fields.ReverseRelation["TestUITaskContent"]
     reports: fields.ReverseRelation["TestUIReport"]
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         table = "test_ui_tasks"
         table_description = "测试单表"
+        abstract = False
 
 
 class TestUITaskContent(BaseModel):
@@ -274,9 +292,10 @@ class TestUITaskContent(BaseModel):
     item_id = fields.BigIntField(description="套件ID或用例ID")
     sort_order = fields.IntField(default=0, description="排序序号")
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         table = "test_ui_task_contents"
         table_description = "测试单内容表"
+        abstract = False
 
 
 class TestUIReport(BaseModel):
@@ -300,9 +319,10 @@ class TestUIReport(BaseModel):
     # 反向关联
     case_executions: fields.ReverseRelation["TestUICaseExecutionRecord"]
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         table = "test_ui_reports"
         table_description = "测试报告表"
+        abstract = False
 
 
 class TestUICaseExecutionRecord(BaseModel):
@@ -331,9 +351,10 @@ class TestUICaseExecutionRecord(BaseModel):
     # 反向关联
     step_executions: fields.ReverseRelation["TestUICaseStepExecutionRecord"]
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         table = "test_ui_case_execution_records"
         table_description = "用例执行记录表"
+        abstract = False
 
 
 class TestUICaseStepExecutionRecord(BaseModel):
@@ -361,6 +382,7 @@ class TestUICaseStepExecutionRecord(BaseModel):
     error_message = fields.TextField(null=True, description="错误信息")
     screenshot_path = fields.CharField(max_length=500, null=True, description="截图路径")
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         table = "test_ui_case_step_execution_records"
         table_description = "用例步骤执行记录表"
+        abstract = False
