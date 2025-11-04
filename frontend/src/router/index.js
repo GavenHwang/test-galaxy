@@ -63,6 +63,11 @@ const routes = [
                         path: "elements",
                         name: "elements",
                         component: () => import('@/views/UITest/Elements.vue'),
+                    },
+                    {
+                        path: "test-cases",
+                        name: "test-cases",
+                        component: () => import('@/views/UITest/TestCases.vue'),
                     }
                 ]
             }

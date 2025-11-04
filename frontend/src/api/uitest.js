@@ -163,3 +163,155 @@ export const getModules = () => {
     method: 'get'
   })
 }
+
+/**
+ * 测试用例管理API
+ */
+
+// 创建测试用例
+export const createTestCase = (data) => {
+  return request({
+    url: '/api/ui-test/test-cases',
+    method: 'post',
+    data
+  })
+}
+
+// 获取测试用例列表
+export const getTestCases = (params) => {
+  return request({
+    url: '/api/ui-test/test-cases',
+    method: 'get',
+    params
+  })
+}
+
+// 获取单个测试用例详情
+export const getTestCaseDetail = (caseId) => {
+  return request({
+    url: `/api/ui-test/test-cases/${caseId}`,
+    method: 'get'
+  })
+}
+
+// 更新测试用例
+export const updateTestCase = (caseId, data) => {
+  return request({
+    url: `/api/ui-test/test-cases/${caseId}`,
+    method: 'put',
+    data
+  })
+}
+
+// 删除测试用例
+export const deleteTestCase = (caseId, force = false) => {
+  return request({
+    url: `/api/ui-test/test-cases/${caseId}`,
+    method: 'delete',
+    params: { force }
+  })
+}
+
+// 复制测试用例
+export const copyTestCase = (caseId) => {
+  return request({
+    url: `/api/ui-test/test-cases/${caseId}/copy`,
+    method: 'post'
+  })
+}
+
+// 更新用例状态
+export const updateCaseStatus = (caseId, status) => {
+  return request({
+    url: `/api/ui-test/test-cases/${caseId}/status`,
+    method: 'patch',
+    params: { status }
+  })
+}
+
+// 获取测试步骤列表
+export const getTestSteps = (caseId) => {
+  return request({
+    url: `/api/ui-test/test-cases/${caseId}/steps`,
+    method: 'get'
+  })
+}
+
+// 创建测试步骤
+export const createTestStep = (caseId, data) => {
+  return request({
+    url: `/api/ui-test/test-cases/${caseId}/steps`,
+    method: 'post',
+    data
+  })
+}
+
+// 更新测试步骤
+export const updateTestStep = (stepId, data) => {
+  return request({
+    url: `/api/ui-test/test-cases/steps/${stepId}`,
+    method: 'put',
+    data
+  })
+}
+
+// 删除测试步骤
+export const deleteTestStep = (stepId) => {
+  return request({
+    url: `/api/ui-test/test-cases/steps/${stepId}`,
+    method: 'delete'
+  })
+}
+
+// 调整步骤顺序
+export const reorderSteps = (caseId, stepIds) => {
+  return request({
+    url: `/api/ui-test/test-cases/${caseId}/steps/reorder`,
+    method: 'post',
+    data: stepIds
+  })
+}
+
+// 获取用例权限
+export const getCasePermissions = (caseId) => {
+  return request({
+    url: `/api/ui-test/test-cases/${caseId}/permissions`,
+    method: 'get'
+  })
+}
+
+// 设置用例权限
+export const setCasePermissions = (caseId, roles) => {
+  return request({
+    url: `/api/ui-test/test-cases/${caseId}/permissions`,
+    method: 'post',
+    data: roles
+  })
+}
+
+// 获取执行历史
+export const getCaseExecutions = (caseId, params) => {
+  return request({
+    url: `/api/ui-test/test-cases/${caseId}/executions`,
+    method: 'get',
+    params
+  })
+}
+
+// 获取执行趋势
+export const getExecutionTrend = (caseId, days = 30) => {
+  return request({
+    url: `/api/ui-test/test-cases/${caseId}/execution-trend`,
+    method: 'get',
+    params: { days }
+  })
+}
+
+// 批量更新状态
+export const batchUpdateCaseStatus = (caseIds, status) => {
+  return request({
+    url: '/api/ui-test/test-cases/batch-update-status',
+    method: 'post',
+    data: { case_ids: caseIds, status }
+  })
+}
