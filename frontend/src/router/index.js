@@ -48,6 +48,18 @@ const routes = [
                 path: "user",
                 name: "user",
                 component: () => import('@/views/User.vue'),
+            },
+            {
+                path: "ui-test",
+                name: "ui-test",
+                redirect: "/ui-test/test-users",
+                children: [
+                    {
+                        path: "test-users",
+                        name: "test-users",
+                        component: () => import('@/views/UITest/TestUsers.vue'),
+                    }
+                ]
             }
         ]
     },
