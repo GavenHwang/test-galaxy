@@ -22,6 +22,7 @@ scheduler = AsyncIOScheduler()
 
 
 async def init_db():
+    from tortoise import Tortoise
     command = Command(tortoise_config=settings.TORTOISE_ORM)
     try:
         await command.init_db(safe=True)
@@ -43,6 +44,9 @@ async def init_db():
     #     await command.init_db(safe=True)
 
     await command.upgrade(run_in_transaction=True)
+    
+    # 重新初始化 Tortoise ORM 以确保模型数据库连接正确设置
+    await Tortoise.init(config=settings.TORTOISE_ORM)
 
 
 async def upsert_menu_tree(menu_data: list, parent: Optional[Menu] = None):
