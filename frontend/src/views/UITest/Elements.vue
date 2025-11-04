@@ -1,0 +1,730 @@
+<template>
+  <div class="elements-container">
+    <!-- 页面头部 -->
+    <div class="page-header">
+      <el-breadcrumb separator="/">
+        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item>UI测试</el-breadcrumb-item>
+        <el-breadcrumb-item>页面元素管理</el-breadcrumb-item>
+      </el-breadcrumb>
+    </div>
+
+    <!-- 操作工具栏 -->
+    <div class="toolbar">
+      <el-button type="primary" @click="handleCreate">
+        <el-icon><Plus /></el-icon>
+        新建元素
+      </el-button>
+    </div>
+
+    <!-- 搜索筛选区 -->
+    <div class="search-area">
+      <el-form :inline="true" :model="searchForm" class="search-form">
+        <el-form-item label="元素名称">
+          <el-input 
+            v-model="searchForm.name" 
+            placeholder="请输入元素名称" 
+            clearable
+            @keyup.enter="handleSearch"
+          />
+        </el-form-item>
+        <el-form-item label="所属页面">
+          <el-select 
+            v-model="searchForm.page" 
+            placeholder="请选择页面" 
+            clearable
+            filterable
+          >
+            <el-option 
+              v-for="item in pageOptions" 
+              :key="item" 
+              :label="item" 
+              :value="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="所属模块">
+          <el-select 
+            v-model="searchForm.module" 
+            placeholder="请选择模块" 
+            clearable
+            filterable
+          >
+            <el-option 
+              v-for="item in moduleOptions" 
+              :key="item" 
+              :label="item" 
+              :value="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="定位器类型">
+          <el-select 
+            v-model="searchForm.selector_type" 
+            placeholder="请选择类型" 
+            clearable
+          >
+            <el-option 
+              v-for="item in selectorTypeOptions" 
+              :key="item.value" 
+              :label="item.label" 
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+
+    <!-- 数据表格 -->
+    <el-table
+      :data="tableData"
+      stripe
+      border
+      v-loading="loading"
+      style="width: 100%"
+    >
+      <el-table-column prop="name" label="元素名称" width="180" />
+      <el-table-column prop="selector_type" label="定位器类型" width="120">
+        <template #default="{ row }">
+          <el-tag size="small">{{ row.selector_type }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="selector_value" label="定位器值" min-width="200" show-overflow-tooltip />
+      <el-table-column prop="page" label="所属页面" width="200" show-overflow-tooltip />
+      <el-table-column prop="module" label="所属模块" width="120" />
+      <el-table-column label="关联用例" width="100" align="center">
+        <template #default="{ row }">
+          <el-button 
+            v-if="row.related_cases_count > 0"
+            text 
+            type="primary"
+            @click="handleViewRelatedCases(row)"
+          >
+            {{ row.related_cases_count }}
+          </el-button>
+          <span v-else>0</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="created_by" label="创建人" width="120" />
+      <el-table-column prop="created_time" label="创建时间" width="180" />
+      <el-table-column label="操作" width="220" fixed="right">
+        <template #default="{ row }">
+          <el-button text type="primary" @click="handleEdit(row)">编辑</el-button>
+          <el-button text type="primary" @click="handleSetPermissions(row)">权限</el-button>
+          <el-button text type="danger" @click="handleDelete(row)">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <!-- 分页组件 -->
+    <div class="pagination">
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :page-sizes="[10, 20, 50, 100]"
+        :total="total"
+        layout="total, sizes, prev, pager, next, jumper"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </div>
+
+    <!-- 新建/编辑对话框 -->
+    <el-dialog
+      v-model="dialogVisible"
+      :title="dialogTitle"
+      width="600px"
+      @close="handleDialogClose"
+    >
+      <el-form
+        ref="formRef"
+        :model="formData"
+        :rules="formRules"
+        label-width="100px"
+      >
+        <el-form-item label="元素名称" prop="name">
+          <el-input 
+            v-model="formData.name" 
+            placeholder="请输入元素名称"
+            maxlength="100"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item label="定位器类型" prop="selector_type">
+          <el-select
+            v-model="formData.selector_type"
+            placeholder="请选择定位器类型"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="item in selectorTypeOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+          <div class="form-tip">{{ getSelectorTip(formData.selector_type) }}</div>
+        </el-form-item>
+        <el-form-item label="定位器值" prop="selector_value">
+          <el-input
+            v-model="formData.selector_value"
+            type="textarea"
+            :rows="2"
+            placeholder="请输入定位器值"
+            maxlength="500"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item label="所属页面" prop="page">
+          <el-select
+            v-model="formData.page"
+            placeholder="请选择或输入页面URL"
+            filterable
+            allow-create
+            style="width: 100%"
+          >
+            <el-option
+              v-for="item in pageOptions"
+              :key="item"
+              :label="item"
+              :value="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="所属模块" prop="module">
+          <el-select
+            v-model="formData.module"
+            placeholder="请选择或输入模块名称"
+            filterable
+            allow-create
+            style="width: 100%"
+          >
+            <el-option
+              v-for="item in moduleOptions"
+              :key="item"
+              :label="item"
+              :value="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="描述" prop="description">
+          <el-input
+            v-model="formData.description"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入描述"
+            maxlength="1000"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSubmit" :loading="submitLoading">
+          确定
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 权限设置抽屉 -->
+    <el-drawer
+      v-model="permissionDrawerVisible"
+      title="设置元素权限"
+      size="600px"
+    >
+      <div class="permission-content">
+        <el-transfer
+          v-model="selectedRoles"
+          :data="allRoles"
+          :titles="['可用角色', '已授权角色']"
+          filterable
+          :filter-placeholder="'搜索角色'"
+        />
+        <div class="drawer-footer">
+          <el-button @click="permissionDrawerVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleSavePermissions" :loading="permissionLoading">
+            保存
+          </el-button>
+        </div>
+      </div>
+    </el-drawer>
+
+    <!-- 关联用例抽屉 -->
+    <el-drawer
+      v-model="relatedCasesDrawerVisible"
+      title="关联测试用例"
+      size="700px"
+    >
+      <div class="related-cases-content">
+        <el-empty v-if="relatedCases.length === 0" description="暂无关联用例" />
+        <el-collapse v-else v-model="activeCaseIds">
+          <el-collapse-item 
+            v-for="caseItem in relatedCases" 
+            :key="caseItem.case_id"
+            :name="caseItem.case_id"
+          >
+            <template #title>
+              <div class="case-title">
+                <span>{{ caseItem.case_name }}</span>
+                <el-tag size="small" type="info">{{ caseItem.step_count }} 个步骤</el-tag>
+              </div>
+            </template>
+            <el-table :data="caseItem.steps" size="small" border>
+              <el-table-column prop="step_number" label="步骤号" width="80" />
+              <el-table-column prop="description" label="步骤描述" />
+            </el-table>
+          </el-collapse-item>
+        </el-collapse>
+      </div>
+    </el-drawer>
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
+import {
+  getElements,
+  createElement,
+  updateElement,
+  deleteElement,
+  getPages,
+  getModules,
+  getElementPermissions,
+  setElementPermissions,
+  getElementRelatedCases,
+  getRoles
+} from '@/api/uitest'
+
+// 定位器类型选项
+const selectorTypeOptions = [
+  { label: 'ID', value: 'ID' },
+  { label: 'NAME', value: 'NAME' },
+  { label: 'CSS', value: 'CSS' },
+  { label: 'XPATH', value: 'XPATH' },
+  { label: 'CLASS_NAME', value: 'CLASS_NAME' },
+  { label: 'TAG_NAME', value: 'TAG_NAME' },
+  { label: 'LINK_TEXT', value: 'LINK_TEXT' },
+  { label: 'PARTIAL_LINK_TEXT', value: 'PARTIAL_LINK_TEXT' },
+  { label: 'TEST_ID', value: 'TEST_ID' }
+]
+
+// 获取定位器提示
+const getSelectorTip = (type) => {
+  const tips = {
+    'ID': '示例：submit-btn',
+    'NAME': '示例：username',
+    'CSS': '示例：.btn-primary 或 #submit-btn',
+    'XPATH': '示例：//div[@class="login"]/button',
+    'CLASS_NAME': '示例：btn-primary',
+    'TAG_NAME': '示例：button',
+    'LINK_TEXT': '示例：登录',
+    'PARTIAL_LINK_TEXT': '示例：登',
+    'TEST_ID': '示例：login-submit'
+  }
+  return tips[type] || ''
+}
+
+// 表格数据
+const tableData = ref([])
+const total = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(20)
+const loading = ref(false)
+
+// 搜索表单
+const searchForm = reactive({
+  name: '',
+  page: '',
+  module: '',
+  selector_type: ''
+})
+
+// 选项列表
+const pageOptions = ref([])
+const moduleOptions = ref([])
+
+// 对话框相关
+const dialogVisible = ref(false)
+const dialogTitle = ref('新建页面元素')
+const formRef = ref(null)
+const isEdit = ref(false)
+const editId = ref(null)
+const submitLoading = ref(false)
+
+// 表单数据
+const formData = reactive({
+  name: '',
+  selector_type: '',
+  selector_value: '',
+  page: '',
+  module: '',
+  description: ''
+})
+
+// 表单验证规则
+const formRules = {
+  name: [
+    { required: true, message: '请输入元素名称', trigger: 'blur' },
+    { min: 1, max: 100, message: '长度在1-100个字符', trigger: 'blur' }
+  ],
+  selector_type: [
+    { required: true, message: '请选择定位器类型', trigger: 'change' }
+  ],
+  selector_value: [
+    { required: true, message: '请输入定位器值', trigger: 'blur' },
+    { min: 1, max: 500, message: '长度在1-500个字符', trigger: 'blur' }
+  ],
+  page: [
+    { required: true, message: '请选择或输入页面URL', trigger: 'blur' },
+    { min: 1, max: 500, message: '长度在1-500个字符', trigger: 'blur' }
+  ],
+  module: [
+    { max: 100, message: '最多100个字符', trigger: 'blur' }
+  ],
+  description: [
+    { max: 1000, message: '描述最多1000个字符', trigger: 'blur' }
+  ]
+}
+
+// 权限设置相关
+const permissionDrawerVisible = ref(false)
+const permissionLoading = ref(false)
+const currentElementId = ref(null)
+const allRoles = ref([])
+const selectedRoles = ref([])
+
+// 关联用例相关
+const relatedCasesDrawerVisible = ref(false)
+const relatedCases = ref([])
+const activeCaseIds = ref([])
+
+// 加载表格数据
+const loadData = async () => {
+  loading.value = true
+  try {
+    const params = {
+      page: currentPage.value,
+      page_size: pageSize.value,
+      ...searchForm
+    }
+    
+    // 过滤空值
+    Object.keys(params).forEach(key => {
+      if (params[key] === '' || params[key] === null) {
+        delete params[key]
+      }
+    })
+    
+    const res = await getElements(params)
+    if (res.code === 200) {
+      tableData.value = res.data.items || []
+      total.value = res.data.total || 0
+    } else {
+      ElMessage.error(res.msg || '获取数据失败')
+    }
+  } catch (error) {
+    console.error('加载数据失败:', error)
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 加载选项
+const loadOptions = async () => {
+  try {
+    const [pagesRes, modulesRes] = await Promise.all([
+      getPages(),
+      getModules()
+    ])
+    
+    if (pagesRes.code === 200) {
+      pageOptions.value = pagesRes.data || []
+    }
+    
+    if (modulesRes.code === 200) {
+      moduleOptions.value = modulesRes.data || []
+    }
+  } catch (error) {
+    console.error('加载选项失败:', error)
+  }
+}
+
+// 搜索
+const handleSearch = () => {
+  currentPage.value = 1
+  loadData()
+}
+
+// 重置
+const handleReset = () => {
+  searchForm.name = ''
+  searchForm.page = ''
+  searchForm.module = ''
+  searchForm.selector_type = ''
+  currentPage.value = 1
+  loadData()
+}
+
+// 分页相关
+const handleSizeChange = (val) => {
+  pageSize.value = val
+  currentPage.value = 1
+  loadData()
+}
+
+const handleCurrentChange = (val) => {
+  currentPage.value = val
+  loadData()
+}
+
+// 新建元素
+const handleCreate = () => {
+  isEdit.value = false
+  dialogTitle.value = '新建页面元素'
+  resetForm()
+  dialogVisible.value = true
+  loadOptions()
+}
+
+// 编辑元素
+const handleEdit = (row) => {
+  isEdit.value = true
+  editId.value = row.id
+  dialogTitle.value = '编辑页面元素'
+  
+  // 深拷贝数据
+  Object.assign(formData, {
+    name: row.name,
+    selector_type: row.selector_type,
+    selector_value: row.selector_value,
+    page: row.page,
+    module: row.module || '',
+    description: row.description || ''
+  })
+  
+  dialogVisible.value = true
+  loadOptions()
+}
+
+// 删除元素
+const handleDelete = (row) => {
+  ElMessageBox.confirm(
+    '删除后不可恢复，是否确认删除？',
+    '提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(async () => {
+    try {
+      const res = await deleteElement(row.id)
+      if (res.code === 200) {
+        ElMessage.success('删除成功')
+        loadData()
+      } else {
+        ElMessage.error(res.msg || '删除失败')
+      }
+    } catch (error) {
+      console.error('删除失败:', error)
+      ElMessage.error('删除失败')
+    }
+  }).catch(() => {
+    // 取消删除
+  })
+}
+
+// 设置权限
+const handleSetPermissions = async (row) => {
+  currentElementId.value = row.id
+  
+  try {
+    // 加载所有角色
+    const rolesRes = await getRoles()
+    if (rolesRes.code === 200) {
+      allRoles.value = (rolesRes.data || []).map(role => ({
+        key: role,
+        label: role
+      }))
+    }
+    
+    // 加载当前权限
+    const permsRes = await getElementPermissions(row.id)
+    if (permsRes.code === 200) {
+      selectedRoles.value = permsRes.data || []
+    }
+    
+    permissionDrawerVisible.value = true
+  } catch (error) {
+    console.error('加载权限失败:', error)
+    ElMessage.error('加载权限失败')
+  }
+}
+
+// 保存权限
+const handleSavePermissions = async () => {
+  permissionLoading.value = true
+  try {
+    const res = await setElementPermissions(currentElementId.value, {
+      roles: selectedRoles.value
+    })
+    
+    if (res.code === 200) {
+      ElMessage.success('权限设置成功')
+      permissionDrawerVisible.value = false
+      loadData()
+    } else {
+      ElMessage.error(res.msg || '设置失败')
+    }
+  } catch (error) {
+    console.error('设置权限失败:', error)
+    ElMessage.error('设置权限失败')
+  } finally {
+    permissionLoading.value = false
+  }
+}
+
+// 查看关联用例
+const handleViewRelatedCases = async (row) => {
+  try {
+    const res = await getElementRelatedCases(row.id)
+    if (res.code === 200) {
+      relatedCases.value = res.data || []
+      activeCaseIds.value = relatedCases.value.length > 0 ? [relatedCases.value[0].case_id] : []
+      relatedCasesDrawerVisible.value = true
+    } else {
+      ElMessage.error(res.msg || '加载失败')
+    }
+  } catch (error) {
+    console.error('加载关联用例失败:', error)
+    ElMessage.error('加载关联用例失败')
+  }
+}
+
+// 提交表单
+const handleSubmit = async () => {
+  if (!formRef.value) return
+  
+  await formRef.value.validate(async (valid) => {
+    if (!valid) return
+    
+    submitLoading.value = true
+    try {
+      let res
+      const submitData = { ...formData }
+      
+      if (isEdit.value) {
+        res = await updateElement(editId.value, submitData)
+      } else {
+        res = await createElement(submitData)
+      }
+      
+      if (res.code === 200) {
+        ElMessage.success(res.msg || (isEdit.value ? '更新成功' : '创建成功'))
+        dialogVisible.value = false
+        loadData()
+        loadOptions()
+      } else {
+        ElMessage.error(res.msg || '操作失败')
+      }
+    } catch (error) {
+      console.error('提交失败:', error)
+      ElMessage.error('操作失败')
+    } finally {
+      submitLoading.value = false
+    }
+  })
+}
+
+// 重置表单
+const resetForm = () => {
+  formData.name = ''
+  formData.selector_type = ''
+  formData.selector_value = ''
+  formData.page = ''
+  formData.module = ''
+  formData.description = ''
+  
+  if (formRef.value) {
+    formRef.value.clearValidate()
+  }
+}
+
+// 对话框关闭
+const handleDialogClose = () => {
+  resetForm()
+}
+
+// 页面加载
+onMounted(() => {
+  loadData()
+  loadOptions()
+})
+</script>
+
+<style scoped lang="less">
+.elements-container {
+  padding: 20px;
+  
+  .page-header {
+    margin-bottom: 20px;
+  }
+  
+  .toolbar {
+    margin-bottom: 20px;
+  }
+  
+  .search-area {
+    margin-bottom: 20px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 4px;
+    
+    .search-form {
+      .el-form-item {
+        margin-bottom: 0;
+      }
+    }
+  }
+  
+  .pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .form-tip {
+    font-size: 12px;
+    color: #909399;
+    margin-top: 4px;
+  }
+  
+  .permission-content {
+    padding: 20px;
+    
+    .drawer-footer {
+      margin-top: 20px;
+      text-align: right;
+    }
+  }
+  
+  .related-cases-content {
+    padding: 20px;
+    
+    .case-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding-right: 20px;
+    }
+  }
+}
+</style>

@@ -139,6 +139,41 @@ class TestStepSchema(BaseModel):
     sort_order: int = Field(default=0, description="排序序号")
 
 
+class TestStepCreateSchema(BaseModel):
+    """创建测试步骤请求"""
+    step_number: int = Field(..., description="步骤序号")
+    action: str = Field(..., description="操作类型")
+    element_id: Optional[int] = Field(None, description="关联页面元素ID")
+    input_data: Optional[str] = Field(None, max_length=500, description="输入数据")
+    wait_time: Optional[int] = Field(None, ge=0, le=60000, description="等待时间(毫秒)")
+    description: str = Field(..., min_length=1, max_length=500, description="步骤描述")
+    sort_order: int = Field(default=0, description="排序序号")
+
+
+class TestStepUpdateSchema(BaseModel):
+    """更新测试步骤请求"""
+    step_number: Optional[int] = Field(None, description="步骤序号")
+    action: Optional[str] = Field(None, description="操作类型")
+    element_id: Optional[int] = Field(None, description="关联页面元素ID")
+    input_data: Optional[str] = Field(None, max_length=500, description="输入数据")
+    wait_time: Optional[int] = Field(None, ge=0, le=60000, description="等待时间(毫秒)")
+    description: Optional[str] = Field(None, min_length=1, max_length=500, description="步骤描述")
+    sort_order: Optional[int] = Field(None, description="排序序号")
+
+
+class TestStepResponseSchema(BaseModel):
+    """测试步骤响应"""
+    id: int
+    test_case_id: int
+    step_number: int
+    action: str
+    element_id: Optional[int] = None
+    input_data: Optional[str] = None
+    wait_time: Optional[int] = None
+    description: str
+    sort_order: int
+
+
 class TestCaseCreateSchema(BaseModel):
     """创建测试用例请求"""
     name: str = Field(..., min_length=1, max_length=200, description="用例名称")

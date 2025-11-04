@@ -134,13 +134,13 @@ class TestUIElementPermission(BaseModel):
         on_delete=fields.CASCADE,
         description="页面元素ID"
     )
-    test_user_role = fields.CharField(max_length=100, description="测试用户角色")
+    role_name = fields.CharField(max_length=100, description="测试用户角色")
     created_time = fields.DatetimeField(auto_now_add=True, description="创建时间")
 
     class Meta(BaseModel.Meta):
         table = "test_ui_element_permissions"
         table_description = "页面元素权限关联表"
-        unique_together = (("element", "test_user_role"),)
+        unique_together = (("element", "role_name"),)
         abstract = False
 
 
@@ -176,13 +176,13 @@ class TestUICasePermission(BaseModel):
         on_delete=fields.CASCADE,
         description="测试用例ID"
     )
-    test_user_role = fields.CharField(max_length=100, description="测试用户角色")
+    role_name = fields.CharField(max_length=100, description="测试用户角色")
     created_time = fields.DatetimeField(auto_now_add=True, description="创建时间")
 
     class Meta(BaseModel.Meta):
         table = "test_ui_case_permissions"
         table_description = "测试用例权限关联表"
-        unique_together = (("test_case", "test_user_role"),)
+        unique_together = (("test_case", "role_name"),)
         abstract = False
 
 
