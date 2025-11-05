@@ -3,6 +3,7 @@ UI测试单管理API
 """
 from fastapi import APIRouter, Query, Request
 from typing import List, Optional
+from datetime import datetime
 from app.schemas.response import ResponseSchema
 from app.schemas.ui_test import (
     TestTaskCreateSchema,
@@ -19,6 +20,13 @@ from app.models.ui_test import (
 )
 
 router = APIRouter()
+
+
+def format_datetime(dt: datetime) -> str:
+    """格式化时间为 YYYY-MM-DD HH:MM:SS 格式"""
+    if dt is None:
+        return None
+    return dt.strftime('%Y-%m-%d %H:%M:%S')
 
 
 @router.post("", summary="创建测试单", response_model=ResponseSchema[TestTaskResponseSchema])
@@ -47,10 +55,10 @@ async def create_test_task(data: TestTaskCreateSchema, request: Request):
             status=task.status,
             execute_config=task.execute_config,
             created_by=task.created_by,
-            created_time=task.created_time,
-            updated_time=task.updated_time,
-            start_time=task.start_time,
-            end_time=task.end_time,
+            created_time=format_datetime(task.created_time),
+            updated_time=format_datetime(task.updated_time),
+            start_time=format_datetime(task.start_time),
+            end_time=format_datetime(task.end_time),
             total_cases=0,
             executed_cases=0,
             passed_cases=0,
@@ -96,7 +104,7 @@ async def get_test_tasks(
         for task in tasks:
             # 计算用例总数
             total_cases = 0
-            contents = await TestUITaskContent.filter(task_id=task.id).all()
+            contents = await TestUITaskContent.filter(test_task_id=task.id).all()
             for content in contents:
                 if content.item_type == 'SUITE':
                     count = await TestUICaseSuite.get(id=content.item_id).prefetch_related('cases').count()
@@ -112,10 +120,10 @@ async def get_test_tasks(
                 status=task.status,
                 execute_config=task.execute_config,
                 created_by=task.created_by,
-                created_time=task.created_time,
-                updated_time=task.updated_time,
-                start_time=task.start_time,
-                end_time=task.end_time,
+                created_time=format_datetime(task.created_time),
+                updated_time=format_datetime(task.updated_time),
+                start_time=format_datetime(task.start_time),
+                end_time=format_datetime(task.end_time),
                 total_cases=total_cases,
                 executed_cases=task.executed_cases or 0,
                 passed_cases=task.passed_cases or 0,
@@ -151,7 +159,7 @@ async def get_test_task(task_id: int):
         
         # 计算用例总数
         total_cases = 0
-        contents = await TestUITaskContent.filter(task_id=task.id).all()
+        contents = await TestUITaskContent.filter(test_task_id=task.id).all()
         for content in contents:
             if content.item_type == 'SUITE':
                 suite = await TestUICaseSuite.get_or_none(id=content.item_id)
@@ -169,10 +177,10 @@ async def get_test_task(task_id: int):
             status=task.status,
             execute_config=task.execute_config,
             created_by=task.created_by,
-            created_time=task.created_time,
-            updated_time=task.updated_time,
-            start_time=task.start_time,
-            end_time=task.end_time,
+            created_time=format_datetime(task.created_time),
+            updated_time=format_datetime(task.updated_time),
+            start_time=format_datetime(task.start_time),
+            end_time=format_datetime(task.end_time),
             total_cases=total_cases,
             executed_cases=task.executed_cases or 0,
             passed_cases=task.passed_cases or 0,
@@ -221,7 +229,7 @@ async def delete_test_task(task_id: int):
             return ResponseSchema.error(msg="测试单不存在", code=404)
         
         # 删除内容
-        await TestUITaskContent.filter(task_id=task_id).delete()
+        await TestUITaskContent.filter(test_task_id=task_id).delete()
         
         # 删除测试单
         await task.delete()
@@ -321,7 +329,7 @@ async def get_task_contents(task_id: int):
         if not task:
             return ResponseSchema.error(msg="测试单不存在", code=404)
         
-        contents = await TestUITaskContent.filter(task_id=task_id).order_by('sort_order').all()
+        contents = await TestUITaskContent.filter(test_task_id=task_id).order_by('sort_order').all()
         
         content_list = []
         for content in contents:
@@ -361,10 +369,10 @@ async def add_task_content(task_id: int, item_type: str, item_id: int):
             return ResponseSchema.error(msg="测试单不存在", code=404)
         
         # 获取当前最大sort_order
-        max_sort = await TestUITaskContent.filter(task_id=task_id).count()
+        max_sort = await TestUITaskContent.filter(test_task_id=task_id).count()
         
         await TestUITaskContent.create(
-            task_id=task_id,
+            test_task_id=task_id,
             item_type=item_type,
             item_id=item_id,
             sort_order=max_sort + 1
@@ -382,7 +390,7 @@ async def remove_task_content(task_id: int, content_id: int):
     从测试单移除测试内容
     """
     try:
-        content = await TestUITaskContent.get_or_none(id=content_id, task_id=task_id)
+        content = await TestUITaskContent.get_or_none(id=content_id, test_task_id=task_id)
         
         if not content:
             return ResponseSchema.error(msg="测试内容不存在", code=404)
@@ -402,7 +410,7 @@ async def reorder_task_contents(task_id: int, content_ids: List[int]):
     """
     try:
         for index, content_id in enumerate(content_ids):
-            content = await TestUITaskContent.get_or_none(id=content_id, task_id=task_id)
+            content = await TestUITaskContent.get_or_none(id=content_id, test_task_id=task_id)
             if content:
                 content.sort_order = index + 1
                 await content.save()

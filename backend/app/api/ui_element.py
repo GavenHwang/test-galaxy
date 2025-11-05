@@ -3,6 +3,7 @@ UI页面元素管理API
 """
 from fastapi import APIRouter, Query, Request
 from typing import List, Optional
+from datetime import datetime
 from app.schemas.response import ResponseSchema
 from app.schemas.ui_test import (
     UIElementCreateSchema,
@@ -20,6 +21,13 @@ from app.models.ui_test import (
 )
 
 router = APIRouter()
+
+
+def format_datetime(dt: datetime) -> str:
+    """格式化时间为 YYYY-MM-DD HH:MM:SS 格式"""
+    if dt is None:
+        return None
+    return dt.strftime('%Y-%m-%d %H:%M:%S')
 
 
 @router.post("", summary="创建页面元素", response_model=ResponseSchema[UIElementResponseSchema])
@@ -78,8 +86,8 @@ async def create_element(data: UIElementCreateSchema, request: Request):
             module=element.module,
             description=element.description,
             created_by=element.created_by,
-            created_time=str(element.created_time),
-            updated_time=str(element.updated_time),
+            created_time=format_datetime(element.created_time),
+            updated_time=format_datetime(element.updated_time),
             related_cases_count=0,
             permission_roles=[]
         )
@@ -147,8 +155,8 @@ async def get_elements(
                 module=element.module,
                 description=element.description,
                 created_by=element.created_by,
-                created_time=str(element.created_time),
-                updated_time=str(element.updated_time),
+                created_time=format_datetime(element.created_time),
+                updated_time=format_datetime(element.updated_time),
                 related_cases_count=related_cases_count,
                 permission_roles=permission_roles
             )
@@ -197,8 +205,8 @@ async def get_element(element_id: int):
             module=element.module,
             description=element.description,
             created_by=element.created_by,
-            created_time=str(element.created_time),
-            updated_time=str(element.updated_time),
+            created_time=format_datetime(element.created_time),
+            updated_time=format_datetime(element.updated_time),
             related_cases_count=related_cases_count,
             permission_roles=permission_roles
         )
@@ -277,8 +285,8 @@ async def update_element(element_id: int, data: UIElementUpdateSchema):
             module=element.module,
             description=element.description,
             created_by=element.created_by,
-            created_time=str(element.created_time),
-            updated_time=str(element.updated_time),
+            created_time=format_datetime(element.created_time),
+            updated_time=format_datetime(element.updated_time),
             related_cases_count=related_cases_count,
             permission_roles=permission_roles
         )

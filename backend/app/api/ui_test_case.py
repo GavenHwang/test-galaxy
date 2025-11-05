@@ -3,6 +3,7 @@ UI测试用例管理API
 """
 from fastapi import APIRouter, Query, Request
 from typing import List, Optional
+from datetime import datetime
 from app.schemas.response import ResponseSchema
 from app.schemas.ui_test import (
     TestCaseCreateSchema,
@@ -24,6 +25,13 @@ from app.models.ui_test import (
 from tortoise.expressions import Q
 
 router = APIRouter()
+
+
+def format_datetime(dt: datetime) -> str:
+    """格式化时间为 YYYY-MM-DD HH:MM:SS 格式"""
+    if dt is None:
+        return None
+    return dt.strftime('%Y-%m-%d %H:%M:%S')
 
 
 @router.post("", summary="创建测试用例", response_model=ResponseSchema[TestCaseResponseSchema])
@@ -65,8 +73,8 @@ async def create_test_case(data: TestCaseCreateSchema, request: Request):
             precondition=test_case.precondition,
             expected_result=test_case.expected_result,
             created_by=test_case.created_by,
-            created_time=str(test_case.created_time),
-            updated_time=str(test_case.updated_time),
+            created_time=format_datetime(test_case.created_time),
+            updated_time=format_datetime(test_case.updated_time),
             steps=[],
             permission_roles=[],
             execution_count=0,
@@ -160,13 +168,13 @@ async def get_test_cases(
                 precondition=case.precondition,
                 expected_result=case.expected_result,
                 created_by=case.created_by,
-                created_time=str(case.created_time),
-                updated_time=str(case.updated_time),
+                created_time=format_datetime(case.created_time),
+                updated_time=format_datetime(case.updated_time),
                 steps=[],
                 permission_roles=permission_roles,
                 execution_count=execution_count,
                 last_execution_status=last_execution.status if last_execution else None,
-                last_execution_time=str(last_execution.start_time) if last_execution else None
+                last_execution_time=format_datetime(last_execution.start_time) if last_execution else None
             )
             case_list.append(case_data)
         
@@ -235,13 +243,13 @@ async def get_test_case(case_id: int):
             precondition=case.precondition,
             expected_result=case.expected_result,
             created_by=case.created_by,
-            created_time=str(case.created_time),
-            updated_time=str(case.updated_time),
+            created_time=format_datetime(case.created_time),
+            updated_time=format_datetime(case.updated_time),
             steps=step_list,
             permission_roles=permission_roles,
             execution_count=execution_count,
             last_execution_status=last_execution.status if last_execution else None,
-            last_execution_time=str(last_execution.start_time) if last_execution else None
+            last_execution_time=format_datetime(last_execution.start_time) if last_execution else None
         )
         
         return ResponseSchema.success(data=case_data)
@@ -307,13 +315,13 @@ async def update_test_case(case_id: int, data: TestCaseUpdateSchema):
             precondition=case.precondition,
             expected_result=case.expected_result,
             created_by=case.created_by,
-            created_time=str(case.created_time),
-            updated_time=str(case.updated_time),
+            created_time=format_datetime(case.created_time),
+            updated_time=format_datetime(case.updated_time),
             steps=step_list,
             permission_roles=permission_roles,
             execution_count=execution_count,
             last_execution_status=last_execution.status if last_execution else None,
-            last_execution_time=str(last_execution.start_time) if last_execution else None
+            last_execution_time=format_datetime(last_execution.start_time) if last_execution else None
         )
         
         return ResponseSchema.success(data=case_data, msg="更新成功")
@@ -443,8 +451,8 @@ async def copy_test_case(case_id: int, request: Request):
             precondition=new_case.precondition,
             expected_result=new_case.expected_result,
             created_by=new_case.created_by,
-            created_time=str(new_case.created_time),
-            updated_time=str(new_case.updated_time),
+            created_time=format_datetime(new_case.created_time),
+            updated_time=format_datetime(new_case.updated_time),
             steps=step_list,
             permission_roles=[],
             execution_count=0,
@@ -800,6 +808,24 @@ async def batch_update_status(case_ids: List[int], status: CaseStatus):
             data={"updated_count": updated_count},
             msg=f"成功更新{updated_count}个用例"
         )
+        
+    except Exception as e:
+        return ResponseSchema.error(msg=f"服务器错误: {str(e)}", code=500)
+
+
+@router.get("/modules/list", summary="获取测试用例模块列表")
+async def get_case_modules():
+    """
+    获取所有不重复的测试用例模块列表，用于下拉选择器
+    """
+    try:
+        # 查询所有不重复的模块
+        modules = await TestUICase.all().distinct().values_list('module', flat=True)
+        
+        # 过滤空值并排序
+        modules = sorted([m for m in modules if m])
+        
+        return ResponseSchema.success(data=modules)
         
     except Exception as e:
         return ResponseSchema.error(msg=f"服务器错误: {str(e)}", code=500)

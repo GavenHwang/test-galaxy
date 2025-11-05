@@ -3,6 +3,7 @@ UI测试套件管理API
 """
 from fastapi import APIRouter, Query, Request
 from typing import List, Optional
+from datetime import datetime
 from app.schemas.response import ResponseSchema
 from app.schemas.ui_test import (
     TestSuiteCreateSchema,
@@ -21,6 +22,13 @@ from tortoise.expressions import Q
 router = APIRouter()
 
 
+def format_datetime(dt: datetime) -> str:
+    """格式化时间为 YYYY-MM-DD HH:MM:SS 格式"""
+    if dt is None:
+        return None
+    return dt.strftime('%Y-%m-%d %H:%M:%S')
+
+
 @router.post("", summary="创建测试套件", response_model=ResponseSchema[TestSuiteResponseSchema])
 async def create_test_suite(data: TestSuiteCreateSchema, request: Request):
     """
@@ -34,7 +42,7 @@ async def create_test_suite(data: TestSuiteCreateSchema, request: Request):
         suite = await TestUICaseSuite.create(
             name=data.name,
             description=data.description,
-            filter_conditions=data.filter_conditions or {},
+            filter_conditions=data.filter_conditions.model_dump() if data.filter_conditions else {},
             created_by=created_by
         )
         
@@ -44,10 +52,10 @@ async def create_test_suite(data: TestSuiteCreateSchema, request: Request):
             description=suite.description,
             filter_conditions=suite.filter_conditions,
             created_by=suite.created_by,
-            created_time=suite.created_time,
-            updated_time=suite.updated_time,
+            created_time=format_datetime(suite.created_time),
+            updated_time=format_datetime(suite.updated_time),
             case_count=0,
-            cases=[]
+            cases=None
         )
         
         return ResponseSchema.success(data=suite_data, msg="创建成功")
@@ -80,7 +88,7 @@ async def get_test_suites(
         
         suite_list = []
         for suite in suites:
-            case_count = await TestUICasesSuitesRelation.filter(suite_id=suite.id).count()
+            case_count = await TestUICasesSuitesRelation.filter(test_suite_id=suite.id).count()
             
             suite_data = TestSuiteResponseSchema(
                 id=suite.id,
@@ -88,10 +96,10 @@ async def get_test_suites(
                 description=suite.description,
                 filter_conditions=suite.filter_conditions,
                 created_by=suite.created_by,
-                created_time=suite.created_time,
-                updated_time=suite.updated_time,
+                created_time=format_datetime(suite.created_time),
+                updated_time=format_datetime(suite.updated_time),
                 case_count=case_count,
-                cases=[]
+                cases=None
             )
             suite_list.append(suite_data)
         
@@ -121,7 +129,7 @@ async def get_test_suite(suite_id: int):
             return ResponseSchema.error(msg="测试套件不存在", code=404)
         
         # 查询关联用例
-        relations = await TestUICasesSuitesRelation.filter(suite_id=suite_id).prefetch_related('test_case').all()
+        relations = await TestUICasesSuitesRelation.filter(test_suite_id=suite_id).prefetch_related('test_case').all()
         cases = [
             {
                 "id": rel.test_case.id,
@@ -139,10 +147,10 @@ async def get_test_suite(suite_id: int):
             description=suite.description,
             filter_conditions=suite.filter_conditions,
             created_by=suite.created_by,
-            created_time=suite.created_time,
-            updated_time=suite.updated_time,
+            created_time=format_datetime(suite.created_time),
+            updated_time=format_datetime(suite.updated_time),
             case_count=len(cases),
-            cases=cases
+            cases=None  # 不返回用例列表，使用单独的API获取
         )
         
         return ResponseSchema.success(data=suite_data)
@@ -168,7 +176,7 @@ async def update_test_suite(suite_id: int, data: TestSuiteUpdateSchema):
         
         await suite.save()
         
-        case_count = await TestUICasesSuitesRelation.filter(suite_id=suite_id).count()
+        case_count = await TestUICasesSuitesRelation.filter(test_suite_id=suite_id).count()
         
         suite_data = TestSuiteResponseSchema(
             id=suite.id,
@@ -176,10 +184,10 @@ async def update_test_suite(suite_id: int, data: TestSuiteUpdateSchema):
             description=suite.description,
             filter_conditions=suite.filter_conditions,
             created_by=suite.created_by,
-            created_time=suite.created_time,
-            updated_time=suite.updated_time,
+            created_time=format_datetime(suite.created_time),
+            updated_time=format_datetime(suite.updated_time),
             case_count=case_count,
-            cases=[]
+            cases=None
         )
         
         return ResponseSchema.success(data=suite_data, msg="更新成功")
@@ -215,7 +223,7 @@ async def delete_test_suite(suite_id: int, force: bool = Query(False)):
             await TestUITaskContent.filter(item_type='SUITE', item_id=suite_id).delete()
         
         # 删除用例关联
-        await TestUICasesSuitesRelation.filter(suite_id=suite_id).delete()
+        await TestUICasesSuitesRelation.filter(test_suite_id=suite_id).delete()
         
         # 删除套件
         await suite.delete()
@@ -232,7 +240,8 @@ async def preview_matched_cases(suite_id: int, filter_conditions: dict):
     根据筛选条件预览匹配的用例
     """
     try:
-        query = TestUICase.filter(status=CaseStatus.ACTIVE)
+        # 不要硬编码状态过滤，让用户自己选择
+        query = TestUICase.all()
         
         # 应用筛选条件
         if filter_conditions.get('module'):
@@ -244,14 +253,21 @@ async def preview_matched_cases(suite_id: int, filter_conditions: dict):
         if filter_conditions.get('created_by'):
             query = query.filter(created_by__in=filter_conditions['created_by'])
         
-        # 标签筛选
-        if filter_conditions.get('tags'):
-            tag_conditions = Q()
-            for tag in filter_conditions['tags']:
-                tag_conditions |= Q(tags__contains=tag)
-            query = query.filter(tag_conditions)
-        
+        # 获取所有符合条件的用例
         cases = await query.all()
+        
+        # 如果有标签筛选，在Python中过滤
+        if filter_conditions.get('tags'):
+            filter_tags = set(filter_conditions['tags'])
+            filtered_cases = []
+            for case in cases:
+                if case.tags and isinstance(case.tags, list):
+                    case_tags = set(case.tags)
+                    # 检查是否有交集
+                    if filter_tags & case_tags:
+                        filtered_cases.append(case)
+            cases = filtered_cases
+        
         matched_count = len(cases)
         
         case_list = [
@@ -287,7 +303,7 @@ async def get_suite_cases(suite_id: int):
             return ResponseSchema.error(msg="测试套件不存在", code=404)
         
         relations = await TestUICasesSuitesRelation.filter(
-            suite_id=suite_id
+            test_suite_id=suite_id
         ).prefetch_related('test_case').order_by('sort_order').all()
         
         cases = [
@@ -318,20 +334,20 @@ async def add_cases_to_suite(suite_id: int, case_ids: List[int]):
         if not suite:
             return ResponseSchema.error(msg="测试套件不存在", code=404)
         
-        # 获取当前最大sort_order
-        max_sort = await TestUICasesSuitesRelation.filter(suite_id=suite_id).count()
+        # 获取当前max sort_order
+        max_sort = await TestUICasesSuitesRelation.filter(test_suite_id=suite_id).count()
         
         added_count = 0
         for case_id in case_ids:
             # 检查是否已存在
             exists = await TestUICasesSuitesRelation.filter(
-                suite_id=suite_id,
+                test_suite_id=suite_id,
                 test_case_id=case_id
             ).exists()
             
             if not exists:
                 await TestUICasesSuitesRelation.create(
-                    suite_id=suite_id,
+                    test_suite_id=suite_id,
                     test_case_id=case_id,
                     sort_order=max_sort + added_count + 1
                 )
@@ -353,7 +369,7 @@ async def remove_case_from_suite(suite_id: int, case_id: int):
     """
     try:
         relation = await TestUICasesSuitesRelation.get_or_none(
-            suite_id=suite_id,
+            test_suite_id=suite_id,
             test_case_id=case_id
         )
         
@@ -376,7 +392,7 @@ async def reorder_suite_cases(suite_id: int, case_ids: List[int]):
     try:
         for index, case_id in enumerate(case_ids):
             relation = await TestUICasesSuitesRelation.get_or_none(
-                suite_id=suite_id,
+                test_suite_id=suite_id,
                 test_case_id=case_id
             )
             if relation:
@@ -401,10 +417,10 @@ async def sync_suite_cases(suite_id: int):
             return ResponseSchema.error(msg="测试套件不存在", code=404)
         
         # 清空现有用例
-        await TestUICasesSuitesRelation.filter(suite_id=suite_id).delete()
+        await TestUICasesSuitesRelation.filter(test_suite_id=suite_id).delete()
         
         # 根据筛选条件查询用例
-        query = TestUICase.filter(status=CaseStatus.ACTIVE)
+        query = TestUICase.all()
         filter_conditions = suite.filter_conditions or {}
         
         if filter_conditions.get('module'):
@@ -418,10 +434,21 @@ async def sync_suite_cases(suite_id: int):
         
         cases = await query.all()
         
+        # 如果有标签筛选，在Python中过滤
+        if filter_conditions.get('tags'):
+            filter_tags = set(filter_conditions['tags'])
+            filtered_cases = []
+            for case in cases:
+                if case.tags and isinstance(case.tags, list):
+                    case_tags = set(case.tags)
+                    if filter_tags & case_tags:
+                        filtered_cases.append(case)
+            cases = filtered_cases
+        
         # 添加用例
         for index, case in enumerate(cases):
             await TestUICasesSuitesRelation.create(
-                suite_id=suite_id,
+                test_suite_id=suite_id,
                 test_case_id=case.id,
                 sort_order=index + 1
             )

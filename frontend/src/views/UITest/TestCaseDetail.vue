@@ -114,92 +114,87 @@
         <div class="steps-container">
           <el-empty v-if="formData.steps.length === 0" description="暂无测试步骤" />
           
-          <draggable 
-            v-else
-            v-model="formData.steps" 
-            item-key="id"
-            handle=".drag-handle"
-            @end="handleStepDragEnd"
-            :disabled="isView"
-          >
-            <template #item="{ element: step, index }">
-              <el-card class="step-card" :class="{ 'is-view': isView }">
-                <div class="step-header">
-                  <div class="step-number">
-                    <el-icon class="drag-handle" v-if="!isView"><Rank /></el-icon>
-                    <span>步骤 {{ index + 1 }}</span>
-                  </div>
-                  <el-button v-if="!isView" text type="danger" @click="handleDeleteStep(index)">
-                    <el-icon><Delete /></el-icon>
-                  </el-button>
+          <div v-else>
+            <el-card 
+              v-for="(step, index) in formData.steps" 
+              :key="step.id"
+              class="step-card" 
+              :class="{ 'is-view': isView }"
+            >
+              <div class="step-header">
+                <div class="step-number">
+                  <span>步骤 {{ index + 1 }}</span>
                 </div>
+                <el-button v-if="!isView" text type="danger" @click="handleDeleteStep(index)">
+                  <el-icon><Delete /></el-icon>
+                </el-button>
+              </div>
 
-                <el-form-item label="操作类型" :prop="`steps.${index}.action`" :rules="stepRules.action">
-                  <el-select 
-                    v-model="step.action" 
-                    placeholder="请选择操作类型" 
-                    :disabled="isView"
-                    style="width: 100%"
-                  >
-                    <el-option v-for="item in actionOptions" :key="item.value" :label="item.label" :value="item.value" />
-                  </el-select>
-                </el-form-item>
-
-                <el-form-item 
-                  v-if="needsElement(step.action)" 
-                  label="页面元素" 
-                  :prop="`steps.${index}.element_id`"
-                  :rules="stepRules.element_id"
+              <el-form-item label="操作类型" :prop="`steps.${index}.action`" :rules="stepRules.action">
+                <el-select 
+                  v-model="step.action" 
+                  placeholder="请选择操作类型" 
+                  :disabled="isView"
+                  style="width: 100%"
                 >
-                  <el-select 
-                    v-model="step.element_id" 
-                    placeholder="请选择页面元素" 
-                    filterable
-                    :disabled="isView"
-                    style="width: 100%"
-                  >
-                    <el-option 
-                      v-for="element in elementOptions" 
-                      :key="element.id" 
-                      :label="`${element.name} (${element.selector_type})`" 
-                      :value="element.id"
-                    />
-                  </el-select>
-                </el-form-item>
+                  <el-option v-for="item in actionOptions" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+              </el-form-item>
 
-                <el-form-item 
-                  v-if="needsInputData(step.action)" 
-                  label="输入数据" 
-                  :prop="`steps.${index}.input_data`"
-                  :rules="stepRules.input_data"
+              <el-form-item 
+                v-if="needsElement(step.action)" 
+                label="页面元素" 
+                :prop="`steps.${index}.element_id`"
+                :rules="stepRules.element_id"
+              >
+                <el-select 
+                  v-model="step.element_id" 
+                  placeholder="请选择页面元素" 
+                  filterable
+                  :disabled="isView"
+                  style="width: 100%"
                 >
-                  <el-input 
-                    v-model="step.input_data" 
-                    placeholder="请输入数据"
-                    :disabled="isView"
+                  <el-option 
+                    v-for="element in elementOptions" 
+                    :key="element.id" 
+                    :label="`${element.name} (${element.selector_type})`" 
+                    :value="element.id"
                   />
-                </el-form-item>
+                </el-select>
+              </el-form-item>
 
-                <el-form-item label="等待时间(ms)" :prop="`steps.${index}.wait_time`">
-                  <el-input-number 
-                    v-model="step.wait_time" 
-                    :min="0" 
-                    :max="60000" 
-                    :step="1000"
-                    :disabled="isView"
-                  />
-                </el-form-item>
+              <el-form-item 
+                v-if="needsInputData(step.action)" 
+                label="输入数据" 
+                :prop="`steps.${index}.input_data`"
+                :rules="stepRules.input_data"
+              >
+                <el-input 
+                  v-model="step.input_data" 
+                  placeholder="请输入数据"
+                  :disabled="isView"
+                />
+              </el-form-item>
 
-                <el-form-item label="步骤描述" :prop="`steps.${index}.description`" :rules="stepRules.description">
-                  <el-input 
-                    v-model="step.description" 
-                    placeholder="请输入步骤描述"
-                    :disabled="isView"
-                  />
-                </el-form-item>
-              </el-card>
-            </template>
-          </draggable>
+              <el-form-item label="等待时间(ms)" :prop="`steps.${index}.wait_time`">
+                <el-input-number 
+                  v-model="step.wait_time" 
+                  :min="0" 
+                  :max="60000" 
+                  :step="1000"
+                  :disabled="isView"
+                />
+              </el-form-item>
+
+              <el-form-item label="步骤描述" :prop="`steps.${index}.description`" :rules="stepRules.description">
+                <el-input 
+                  v-model="step.description" 
+                  placeholder="请输入步骤描述"
+                  :disabled="isView"
+                />
+              </el-form-item>
+            </el-card>
+          </div>
         </div>
       </el-form>
     </el-card>
@@ -210,14 +205,16 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Plus, Delete, Rank } from '@element-plus/icons-vue'
-import draggable from 'vuedraggable'
+import { Plus, Delete } from '@element-plus/icons-vue'
 import {
   getTestCaseDetail,
   createTestCase,
   updateTestCase,
   getModules,
-  getElements
+  getElements,
+  createTestStep,
+  updateTestStep,
+  deleteTestStep
 } from '@/api/uitest'
 
 const route = useRoute()
@@ -360,17 +357,22 @@ const handleAddStep = () => {
 }
 
 // 删除步骤
-const handleDeleteStep = (index) => {
+const handleDeleteStep = async (index) => {
+  const step = formData.steps[index]
+  
+  // 如果是已保存的步骤（有真实ID），需要调用后端API删除
+  if (step.id && step.id < 1000000000000 && !isNew.value) {
+    try {
+      await deleteTestStep(step.id)
+    } catch (error) {
+      console.error('删除步骤失败:', error)
+      ElMessage.error('删除步骤失败')
+      return
+    }
+  }
+  
+  // 从列表中移除
   formData.steps.splice(index, 1)
-}
-
-// 步骤拖拽结束
-const handleStepDragEnd = () => {
-  // 更新步骤顺序
-  formData.steps.forEach((step, index) => {
-    step.sort_order = index + 1
-    step.step_number = index + 1
-  })
 }
 
 // 保存
@@ -399,18 +401,20 @@ const handleSave = async () => {
         expected_result: formData.expected_result
       }
       
-      let res
+      let savedCase
       if (isNew.value) {
-        res = await createTestCase(submitData)
+        savedCase = await createTestCase(submitData)
       } else {
-        res = await updateTestCase(caseId.value, submitData)
+        savedCase = await updateTestCase(caseId.value, submitData)
       }
       
+      // 获取用例ID
+      const savedCaseId = isNew.value ? savedCase.id : caseId.value
+      
+      // 保存步骤
+      await saveSteps(savedCaseId)
+      
       ElMessage.success(isNew.value ? '创建成功' : '更新成功')
-      
-      // 保存步骤（这里简化处理，实际应该调用步骤API）
-      // TODO: 调用步骤创建/更新API
-      
       router.push('/ui-test/test-cases')
     } catch (error) {
       console.error('保存失败:', error)
@@ -418,6 +422,37 @@ const handleSave = async () => {
       saving.value = false
     }
   })
+}
+
+// 保存步骤
+const saveSteps = async (caseId) => {
+  try {
+    // 保存所有步骤
+    for (const [index, step] of formData.steps.entries()) {
+      const stepData = {
+        action: step.action,
+        element_id: step.element_id,
+        input_data: step.input_data || '',
+        wait_time: step.wait_time || 0,
+        description: step.description,
+        step_number: index + 1,
+        sort_order: index + 1
+      }
+      
+      // 如果步骤有真实ID（不是Date.now()生成的临时ID），则更新，否则创建
+      // Date.now()生成的ID都是13位以上的大数
+      if (step.id && step.id < 1000000000000) {
+        await updateTestStep(step.id, stepData)
+      } else {
+        const created = await createTestStep(caseId, stepData)
+        // 更新步骤的真实ID
+        step.id = created.id
+      }
+    }
+  } catch (error) {
+    console.error('保存步骤失败:', error)
+    throw error
+  }
 }
 
 // 取消
@@ -449,11 +484,6 @@ onMounted(() => {
     
     .step-card {
       margin-bottom: 15px;
-      cursor: move;
-      
-      &.is-view {
-        cursor: default;
-      }
       
       .step-header {
         display: flex;
@@ -468,9 +498,7 @@ onMounted(() => {
           font-weight: bold;
           
           .drag-handle {
-            cursor: move;
-            font-size: 18px;
-            color: #909399;
+            display: none; // 暂时隐藏拖拽手柄
           }
         }
       }

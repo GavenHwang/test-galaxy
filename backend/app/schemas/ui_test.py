@@ -210,7 +210,7 @@ class TestCaseResponseSchema(BaseResponseSchema):
     precondition: Optional[str] = None
     expected_result: Optional[str] = None
     created_by: str
-    steps: Optional[List[TestStepSchema]] = None
+    steps: Optional[List[TestStepResponseSchema]] = None  # 修改为TestStepResponseSchema
     permission_roles: Optional[List[str]] = []
     execution_count: Optional[int] = 0
     last_execution_status: Optional[str] = None
@@ -342,8 +342,14 @@ class TestTaskResponseSchema(BaseResponseSchema):
     status: str
     execute_config: Dict[str, Any]
     created_by: str
+    created_time: str
+    updated_time: str
     start_time: Optional[str] = None
     end_time: Optional[str] = None
+    total_cases: int = 0
+    executed_cases: int = 0
+    passed_cases: int = 0
+    failed_cases: int = 0
     progress: Optional[float] = 0.0
     estimated_time: Optional[int] = None
 

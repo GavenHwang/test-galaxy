@@ -3,6 +3,7 @@ UI测试用户管理API
 """
 from fastapi import APIRouter, Query, Request
 from typing import List, Optional
+from datetime import datetime
 from app.schemas.response import ResponseSchema
 from app.schemas.ui_test import (
     TestUserCreateSchema,
@@ -14,6 +15,13 @@ from app.models.ui_test import TestCommonUser, TestUIElementPermission, TestUICa
 from tortoise.expressions import Q
 
 router = APIRouter()
+
+
+def format_datetime(dt: datetime) -> str:
+    """格式化时间为 YYYY-MM-DD HH:MM:SS 格式"""
+    if dt is None:
+        return None
+    return dt.strftime('%Y-%m-%d %H:%M:%S')
 
 
 @router.post("", summary="创建测试用户", response_model=ResponseSchema[TestUserResponseSchema])
@@ -62,8 +70,8 @@ async def create_test_user(data: TestUserCreateSchema, request: Request):
             role_name=user.role_name,
             description=user.description,
             created_by=user.created_by,
-            created_time=str(user.created_time),
-            updated_time=str(user.updated_time)
+            created_time=format_datetime(user.created_time),
+            updated_time=format_datetime(user.updated_time)
         )
         
         return ResponseSchema.success(data=user_data, msg="创建成功")
@@ -116,8 +124,8 @@ async def get_test_users(
                 role_name=user.role_name,
                 description=user.description,
                 created_by=user.created_by,
-                created_time=str(user.created_time),
-                updated_time=str(user.updated_time)
+                created_time=format_datetime(user.created_time),
+                updated_time=format_datetime(user.updated_time)
             )
             for user in users
         ]
@@ -157,8 +165,8 @@ async def get_test_user(user_id: int):
             role_name=user.role_name,
             description=user.description,
             created_by=user.created_by,
-            created_time=str(user.created_time),
-            updated_time=str(user.updated_time)
+            created_time=format_datetime(user.created_time),
+            updated_time=format_datetime(user.updated_time)
         )
         
         return ResponseSchema.success(data=user_data)
@@ -218,8 +226,8 @@ async def update_test_user(user_id: int, data: TestUserUpdateSchema):
             role_name=user.role_name,
             description=user.description,
             created_by=user.created_by,
-            created_time=str(user.created_time),
-            updated_time=str(user.updated_time)
+            created_time=format_datetime(user.created_time),
+            updated_time=format_datetime(user.updated_time)
         )
         
         return ResponseSchema.success(data=user_data, msg="更新成功")

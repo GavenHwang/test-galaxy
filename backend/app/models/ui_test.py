@@ -273,7 +273,7 @@ class TestUICasesSuitesRelation(BaseModel):
         abstract = False
 
 
-class TestUITask(BaseModel):
+class TestUITask(BaseModel, TimestampMixin):
     """测试单表"""
     name = fields.CharField(max_length=200, description="测试单名称")
     description = fields.TextField(null=True, description="描述")
@@ -281,9 +281,15 @@ class TestUITask(BaseModel):
     status = fields.CharEnumField(TaskStatus, default=TaskStatus.PENDING, index=True, description="状态")
     execute_config = fields.JSONField(description="执行配置")
     created_by = fields.CharField(max_length=50, description="创建人")
-    created_time = fields.DatetimeField(auto_now_add=True, description="创建时间")
     start_time = fields.DatetimeField(null=True, description="开始时间")
     end_time = fields.DatetimeField(null=True, description="结束时间")
+    
+    # 统计字段
+    total_cases = fields.IntField(default=0, description="总用例数")
+    executed_cases = fields.IntField(default=0, description="已执行用例数")
+    passed_cases = fields.IntField(default=0, description="通过用例数")
+    failed_cases = fields.IntField(default=0, description="失败用例数")
+    progress = fields.DecimalField(max_digits=5, decimal_places=2, default=0.00, description="执行进度")
 
     # 反向关联
     contents: fields.ReverseRelation["TestUITaskContent"]

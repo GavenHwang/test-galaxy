@@ -3,11 +3,19 @@
 """
 from fastapi import APIRouter, Query, Request
 from typing import Optional
+from datetime import datetime
 from app.schemas.response import ResponseSchema
 from pydantic import BaseModel, Field
 from app.models.ui_test import TestProductRole
 
 router = APIRouter()
+
+
+def format_datetime(dt: datetime) -> str:
+    """格式化时间为 YYYY-MM-DD HH:MM:SS 格式"""
+    if dt is None:
+        return None
+    return dt.strftime('%Y-%m-%d %H:%M:%S')
 
 
 # ==================== Schema 定义 ====================
@@ -88,8 +96,8 @@ async def create_product_role(data: ProductRoleCreateSchema, request: Request):
             role_code=product_role.role_code,
             description=product_role.description,
             created_by=product_role.created_by,
-            created_time=str(product_role.created_time),
-            updated_time=str(product_role.updated_time)
+            created_time=format_datetime(product_role.created_time),
+            updated_time=format_datetime(product_role.updated_time)
         )
         
         return ResponseSchema.success(data=result, msg="创建成功")
@@ -137,8 +145,8 @@ async def get_product_roles(
                 role_code=pr.role_code,
                 description=pr.description,
                 created_by=pr.created_by,
-                created_time=str(pr.created_time),
-                updated_time=str(pr.updated_time)
+                created_time=format_datetime(pr.created_time),
+                updated_time=format_datetime(pr.updated_time)
             )
             for pr in product_roles
         ]
@@ -177,8 +185,8 @@ async def get_product_role(product_role_id: int):
             role_code=product_role.role_code,
             description=product_role.description,
             created_by=product_role.created_by,
-            created_time=str(product_role.created_time),
-            updated_time=str(product_role.updated_time)
+            created_time=format_datetime(product_role.created_time),
+            updated_time=format_datetime(product_role.updated_time)
         )
         
         return ResponseSchema.success(data=result)
@@ -236,8 +244,8 @@ async def update_product_role(product_role_id: int, data: ProductRoleUpdateSchem
             role_code=product_role.role_code,
             description=product_role.description,
             created_by=product_role.created_by,
-            created_time=str(product_role.created_time),
-            updated_time=str(product_role.updated_time)
+            created_time=format_datetime(product_role.created_time),
+            updated_time=format_datetime(product_role.updated_time)
         )
         
         return ResponseSchema.success(data=result, msg="更新成功")

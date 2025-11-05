@@ -156,10 +156,10 @@ export const getPages = () => {
   })
 }
 
-// 获取模块列表
+// 获取测试用例模块列表
 export const getModules = () => {
   return request({
-    url: '/api/ui-test/elements/modules/list',
+    url: '/api/ui-test/test-cases/modules/list',
     method: 'get'
   })
 }
