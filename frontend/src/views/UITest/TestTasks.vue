@@ -1,14 +1,5 @@
 <template>
   <div class="test-tasks-container">
-    <!-- 页面头部 -->
-    <div class="page-header">
-      <el-breadcrumb separator="/">
-        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item>UI测试</el-breadcrumb-item>
-        <el-breadcrumb-item>测试单管理</el-breadcrumb-item>
-      </el-breadcrumb>
-    </div>
-
     <!-- 操作工具栏 -->
     <div class="toolbar">
       <el-button type="primary" @click="handleCreate">
@@ -449,16 +440,11 @@ const loadData = async () => {
       }
     })
     
-    const res = await getTestTasks(params)
-    if (res.code === 200) {
-      tableData.value = res.data.items || []
-      total.value = res.data.total || 0
-    } else {
-      ElMessage.error(res.msg || '获取数据失败')
-    }
+    const data = await getTestTasks(params)
+    tableData.value = data.items || []
+    total.value = data.total || 0
   } catch (error) {
     console.error('加载数据失败:', error)
-    ElMessage.error('加载数据失败')
   } finally {
     loading.value = false
   }
@@ -468,22 +454,18 @@ const loadData = async () => {
 const loadAvailableContent = async () => {
   try {
     // 加载套件
-    const suiteRes = await getTestSuites({ page: 1, page_size: 1000 })
-    if (suiteRes.code === 200) {
-      availableSuites.value = suiteRes.data.items.map(item => ({
-        id: item.id,
-        name: item.name
-      }))
-    }
+    const suiteData = await getTestSuites({ page: 1, page_size: 1000 })
+    availableSuites.value = suiteData.items.map(item => ({
+      id: item.id,
+      name: item.name
+    }))
     
     // 加载用例
-    const caseRes = await getTestCases({ page: 1, page_size: 1000, status: '激活' })
-    if (caseRes.code === 200) {
-      availableCases.value = caseRes.data.items.map(item => ({
-        id: item.id,
-        name: item.name
-      }))
-    }
+    const caseData = await getTestCases({ page: 1, page_size: 1000, status: '激活' })
+    availableCases.value = caseData.items.map(item => ({
+      id: item.id,
+      name: item.name
+    }))
   } catch (error) {
     console.error('加载可用内容失败:', error)
   }
@@ -530,16 +512,11 @@ const handleCreate = () => {
 // 查看测试单
 const handleView = async (row) => {
   try {
-    const res = await getTestTaskDetail(row.id)
-    if (res.code === 200) {
-      currentTask.value = res.data
-      viewDialogVisible.value = true
-    } else {
-      ElMessage.error(res.msg || '获取详情失败')
-    }
+    const task = await getTestTaskDetail(row.id)
+    currentTask.value = task
+    viewDialogVisible.value = true
   } catch (error) {
     console.error('获取详情失败:', error)
-    ElMessage.error('获取详情失败')
   }
 }
 
@@ -550,29 +527,23 @@ const handleEdit = async (row) => {
   currentStep.value = 0
   
   try {
-    const res = await getTestTaskDetail(row.id)
-    if (res.code === 200) {
-      const task = res.data
-      formData.name = task.name
-      formData.description = task.description
-      formData.environment = task.environment
-      formData.execute_config = task.execute_config || {
-        stop_on_failure: false,
-        retry_on_failure: false,
-        max_retry_times: 3,
-        timeout: 300,
-        parallel: false,
-        parallel_count: 3
-      }
-      
-      await loadAvailableContent()
-      dialogVisible.value = true
-    } else {
-      ElMessage.error(res.msg || '获取测试单信息失败')
+    const task = await getTestTaskDetail(row.id)
+    formData.name = task.name
+    formData.description = task.description
+    formData.environment = task.environment
+    formData.execute_config = task.execute_config || {
+      stop_on_failure: false,
+      retry_on_failure: false,
+      max_retry_times: 3,
+      timeout: 300,
+      parallel: false,
+      parallel_count: 3
     }
+    
+    await loadAvailableContent()
+    dialogVisible.value = true
   } catch (error) {
     console.error('获取测试单信息失败:', error)
-    ElMessage.error('获取测试单信息失败')
   }
 }
 
@@ -588,16 +559,11 @@ const handleExecute = (row) => {
     }
   ).then(async () => {
     try {
-      const res = await executeTestTask(row.id)
-      if (res.code === 200) {
-        ElMessage.success('测试单已开始执行')
-        loadData()
-      } else {
-        ElMessage.error(res.msg || '执行失败')
-      }
+      await executeTestTask(row.id)
+      ElMessage.success('测试单已开始执行')
+      loadData()
     } catch (error) {
       console.error('执行失败:', error)
-      ElMessage.error('执行失败')
     }
   }).catch(() => {})
 }
@@ -614,16 +580,11 @@ const handleCancel = (row) => {
     }
   ).then(async () => {
     try {
-      const res = await cancelTestTask(row.id)
-      if (res.code === 200) {
-        ElMessage.success('已取消执行')
-        loadData()
-      } else {
-        ElMessage.error(res.msg || '取消失败')
-      }
+      await cancelTestTask(row.id)
+      ElMessage.success('已取消执行')
+      loadData()
     } catch (error) {
       console.error('取消失败:', error)
-      ElMessage.error('取消失败')
     }
   }).catch(() => {})
 }
@@ -640,16 +601,11 @@ const handleDelete = (row) => {
     }
   ).then(async () => {
     try {
-      const res = await deleteTestTask(row.id)
-      if (res.code === 200) {
-        ElMessage.success('删除成功')
-        loadData()
-      } else {
-        ElMessage.error(res.msg || '删除失败')
-      }
+      await deleteTestTask(row.id)
+      ElMessage.success('删除成功')
+      loadData()
     } catch (error) {
       console.error('删除失败:', error)
-      ElMessage.error('删除失败')
     }
   }).catch(() => {})
 }
@@ -686,20 +642,17 @@ const handleSubmit = async () => {
       cases: selectedCases.value
     }
     
-    const res = editingId.value 
-      ? await updateTestTask(editingId.value, data)
-      : await createTestTask(data)
-      
-    if (res.code === 200) {
-      ElMessage.success(res.msg || (editingId.value ? '更新成功' : '创建成功'))
-      dialogVisible.value = false
-      loadData()
+    if (editingId.value) {
+      await updateTestTask(editingId.value, data)
     } else {
-      ElMessage.error(res.msg || '操作失败')
+      await createTestTask(data)
     }
+    
+    ElMessage.success(editingId.value ? '更新成功' : '创建成功')
+    dialogVisible.value = false
+    loadData()
   } catch (error) {
     console.error('提交失败:', error)
-    ElMessage.error('提交失败')
   } finally {
     submitting.value = false
   }
@@ -740,10 +693,6 @@ onMounted(() => {
 <style scoped lang="less">
 .test-tasks-container {
   padding: 20px;
-  
-  .page-header {
-    margin-bottom: 20px;
-  }
   
   .toolbar {
     margin-bottom: 20px;

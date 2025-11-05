@@ -1,15 +1,5 @@
 <template>
   <div class="test-case-detail-container">
-    <!-- 页面头部 -->
-    <div class="page-header">
-      <el-breadcrumb separator="/">
-        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item>UI测试</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ path: '/ui-test/test-cases' }">测试用例管理</el-breadcrumb-item>
-        <el-breadcrumb-item>{{ pageTitle }}</el-breadcrumb-item>
-      </el-breadcrumb>
-    </div>
-
     <!-- 主内容区 -->
     <el-card class="main-card">
       <template #header>
@@ -324,44 +314,33 @@ const loadCaseDetail = async () => {
   if (isNew.value) return
   
   try {
-    const res = await getTestCaseDetail(caseId.value)
-    if (res.code === 200) {
-      const data = res.data
-      Object.assign(formData, {
-        name: data.name,
-        description: data.description || '',
-        priority: data.priority,
-        module: data.module || '',
-        tags: data.tags || [],
-        status: data.status,
-        precondition: data.precondition || '',
-        expected_result: data.expected_result || '',
-        steps: data.steps || []
-      })
-    } else {
-      ElMessage.error(res.msg || '加载失败')
-    }
+    const data = await getTestCaseDetail(caseId.value)
+    Object.assign(formData, {
+      name: data.name,
+      description: data.description || '',
+      priority: data.priority,
+      module: data.module || '',
+      tags: data.tags || [],
+      status: data.status,
+      precondition: data.precondition || '',
+      expected_result: data.expected_result || '',
+      steps: data.steps || []
+    })
   } catch (error) {
     console.error('加载用例失败:', error)
-    ElMessage.error('加载用例失败')
   }
 }
 
 // 加载选项
 const loadOptions = async () => {
   try {
-    const [modulesRes, elementsRes] = await Promise.all([
+    const [modules, elementsData] = await Promise.all([
       getModules(),
       getElements({ page: 1, page_size: 1000 })
     ])
     
-    if (modulesRes.code === 200) {
-      moduleOptions.value = modulesRes.data || []
-    }
-    
-    if (elementsRes.code === 200) {
-      elementOptions.value = elementsRes.data.items || []
-    }
+    moduleOptions.value = modules || []
+    elementOptions.value = elementsData.items || []
   } catch (error) {
     console.error('加载选项失败:', error)
   }
@@ -427,19 +406,14 @@ const handleSave = async () => {
         res = await updateTestCase(caseId.value, submitData)
       }
       
-      if (res.code === 200) {
-        ElMessage.success(res.msg || (isNew.value ? '创建成功' : '更新成功'))
-        
-        // 保存步骤（这里简化处理，实际应该调用步骤API）
-        // TODO: 调用步骤创建/更新API
-        
-        router.push('/ui-test/test-cases')
-      } else {
-        ElMessage.error(res.msg || '保存失败')
-      }
+      ElMessage.success(isNew.value ? '创建成功' : '更新成功')
+      
+      // 保存步骤（这里简化处理，实际应该调用步骤API）
+      // TODO: 调用步骤创建/更新API
+      
+      router.push('/ui-test/test-cases')
     } catch (error) {
       console.error('保存失败:', error)
-      ElMessage.error('保存失败')
     } finally {
       saving.value = false
     }
@@ -461,10 +435,6 @@ onMounted(() => {
 <style scoped lang="less">
 .test-case-detail-container {
   padding: 20px;
-  
-  .page-header {
-    margin-bottom: 20px;
-  }
   
   .main-card {
     .card-header {

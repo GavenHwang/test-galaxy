@@ -1,14 +1,5 @@
 <template>
   <div class="test-cases-container">
-    <!-- 页面头部 -->
-    <div class="page-header">
-      <el-breadcrumb separator="/">
-        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item>UI测试</el-breadcrumb-item>
-        <el-breadcrumb-item>测试用例管理</el-breadcrumb-item>
-      </el-breadcrumb>
-    </div>
-
     <!-- 操作工具栏 -->
     <div class="toolbar">
       <el-button type="primary" @click="handleCreate">
@@ -230,16 +221,12 @@ const loadData = async () => {
       }
     })
     
-    const res = await getTestCases(params)
-    if (res.code === 200) {
-      tableData.value = res.data.items || []
-      total.value = res.data.total || 0
-    } else {
-      ElMessage.error(res.msg || '获取数据失败')
-    }
+    // 注意：响应拦截器在 code===200 时直接返回 data 字段
+    const data = await getTestCases(params)
+    tableData.value = data.items || []
+    total.value = data.total || 0
   } catch (error) {
     console.error('加载数据失败:', error)
-    ElMessage.error('加载数据失败')
   } finally {
     loading.value = false
   }
@@ -248,10 +235,8 @@ const loadData = async () => {
 // 加载模块选项
 const loadModules = async () => {
   try {
-    const res = await getModules()
-    if (res.code === 200) {
-      moduleOptions.value = res.data || []
-    }
+    const modules = await getModules()
+    moduleOptions.value = modules || []
   } catch (error) {
     console.error('加载模块失败:', error)
   }
@@ -317,16 +302,11 @@ const handleCopy = (row) => {
     }
   ).then(async () => {
     try {
-      const res = await copyTestCase(row.id)
-      if (res.code === 200) {
-        ElMessage.success('复制成功')
-        loadData()
-      } else {
-        ElMessage.error(res.msg || '复制失败')
-      }
+      await copyTestCase(row.id)
+      ElMessage.success('复制成功')
+      loadData()
     } catch (error) {
       console.error('复制失败:', error)
-      ElMessage.error('复制失败')
     }
   }).catch(() => {})
 }
@@ -343,14 +323,16 @@ const handleDelete = (row) => {
     }
   ).then(async () => {
     try {
-      const res = await deleteTestCase(row.id, false)
-      if (res.code === 200) {
-        ElMessage.success('删除成功')
-        loadData()
-      } else if (res.code === 400 && res.msg.includes('引用')) {
-        // 存在引用，询问是否强制删除
+      await deleteTestCase(row.id, false)
+      ElMessage.success('删除成功')
+      loadData()
+    } catch (error) {
+      console.error('删除失败:', error)
+      // 如果错误消息包含"引用"，询问是否强制删除
+      const errorMsg = error.message || error
+      if (errorMsg.includes('引用')) {
         ElMessageBox.confirm(
-          res.msg + '，是否强制删除？',
+          errorMsg + '，是否强制删除？',
           '警告',
           {
             confirmButtonText: '强制删除',
@@ -358,20 +340,15 @@ const handleDelete = (row) => {
             type: 'warning'
           }
         ).then(async () => {
-          const forceRes = await deleteTestCase(row.id, true)
-          if (forceRes.code === 200) {
+          try {
+            await deleteTestCase(row.id, true)
             ElMessage.success('删除成功')
             loadData()
-          } else {
-            ElMessage.error(forceRes.msg || '删除失败')
+          } catch (err) {
+            console.error('强制删除失败:', err)
           }
-        })
-      } else {
-        ElMessage.error(res.msg || '删除失败')
+        }).catch(() => {})
       }
-    } catch (error) {
-      console.error('删除失败:', error)
-      ElMessage.error('删除失败')
     }
   }).catch(() => {})
 }
@@ -397,16 +374,11 @@ const handleBatchCommand = (command) => {
 // 批量更新状态
 const batchUpdateStatus = async (caseIds, status) => {
   try {
-    const res = await batchUpdateCaseStatus(caseIds, status)
-    if (res.code === 200) {
-      ElMessage.success(res.msg || '批量更新成功')
-      loadData()
-    } else {
-      ElMessage.error(res.msg || '批量更新失败')
-    }
+    await batchUpdateCaseStatus(caseIds, status)
+    ElMessage.success('批量更新成功')
+    loadData()
   } catch (error) {
     console.error('批量更新失败:', error)
-    ElMessage.error('批量更新失败')
   }
 }
 
@@ -424,10 +396,8 @@ const batchDelete = (caseIds) => {
     let successCount = 0
     for (const id of caseIds) {
       try {
-        const res = await deleteTestCase(id, true)
-        if (res.code === 200) {
-          successCount++
-        }
+        await deleteTestCase(id, true)
+        successCount++
       } catch (error) {
         console.error('删除失败:', error)
       }
@@ -447,10 +417,6 @@ onMounted(() => {
 <style scoped lang="less">
 .test-cases-container {
   padding: 20px;
-  
-  .page-header {
-    margin-bottom: 20px;
-  }
   
   .toolbar {
     margin-bottom: 20px;

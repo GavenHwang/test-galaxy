@@ -1,14 +1,5 @@
 <template>
   <div class="test-suites-container">
-    <!-- 页面头部 -->
-    <div class="page-header">
-      <el-breadcrumb separator="/">
-        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item>UI测试</el-breadcrumb-item>
-        <el-breadcrumb-item>测试套件管理</el-breadcrumb-item>
-      </el-breadcrumb>
-    </div>
-
     <!-- 操作工具栏 -->
     <div class="toolbar">
       <el-button type="primary" @click="handleCreate">
@@ -334,16 +325,11 @@ const loadData = async () => {
       }
     })
     
-    const res = await getTestSuites(params)
-    if (res.code === 200) {
-      tableData.value = res.data.items || []
-      total.value = res.data.total || 0
-    } else {
-      ElMessage.error(res.msg || '获取数据失败')
-    }
+    const data = await getTestSuites(params)
+    tableData.value = data.items || []
+    total.value = data.total || 0
   } catch (error) {
     console.error('加载数据失败:', error)
-    ElMessage.error('加载数据失败')
   } finally {
     loading.value = false
   }
@@ -352,10 +338,8 @@ const loadData = async () => {
 // 加载模块选项
 const loadModules = async () => {
   try {
-    const res = await getModules()
-    if (res.code === 200) {
-      moduleOptions.value = res.data || []
-    }
+    const modules = await getModules()
+    moduleOptions.value = modules || []
   } catch (error) {
     console.error('加载模块失败:', error)
   }
@@ -398,16 +382,11 @@ const handleCreate = () => {
 // 查看套件
 const handleView = async (row) => {
   try {
-    const res = await getTestSuiteDetail(row.id)
-    if (res.code === 200) {
-      currentSuite.value = res.data
-      viewDialogVisible.value = true
-    } else {
-      ElMessage.error(res.msg || '获取详情失败')
-    }
+    const suite = await getTestSuiteDetail(row.id)
+    currentSuite.value = suite
+    viewDialogVisible.value = true
   } catch (error) {
     console.error('获取详情失败:', error)
-    ElMessage.error('获取详情失败')
   }
 }
 
@@ -417,31 +396,25 @@ const handleEdit = async (row) => {
   dialogTitle.value = '编辑套件'
   
   try {
-    const res = await getTestSuiteDetail(row.id)
-    if (res.code === 200) {
-      const suite = res.data
-      formData.name = suite.name
-      formData.description = suite.description
-      
-      // 处理筛选条件
-      const conditions = suite.filter_conditions || {}
-      formData.filter_conditions.module = conditions.module || []
-      formData.filter_conditions.priority = conditions.priority || []
-      formData.filter_conditions.status = conditions.status || []
-      formData.filter_conditions.created_by = Array.isArray(conditions.created_by) 
-        ? conditions.created_by.join(', ') 
-        : (conditions.created_by || '')
-      formData.filter_conditions.tags = Array.isArray(conditions.tags) 
-        ? conditions.tags.join(', ') 
-        : (conditions.tags || '')
-      
-      dialogVisible.value = true
-    } else {
-      ElMessage.error(res.msg || '获取套件信息失败')
-    }
+    const suite = await getTestSuiteDetail(row.id)
+    formData.name = suite.name
+    formData.description = suite.description
+    
+    // 处理筛选条件
+    const conditions = suite.filter_conditions || {}
+    formData.filter_conditions.module = conditions.module || []
+    formData.filter_conditions.priority = conditions.priority || []
+    formData.filter_conditions.status = conditions.status || []
+    formData.filter_conditions.created_by = Array.isArray(conditions.created_by) 
+      ? conditions.created_by.join(', ') 
+      : (conditions.created_by || '')
+    formData.filter_conditions.tags = Array.isArray(conditions.tags) 
+      ? conditions.tags.join(', ') 
+      : (conditions.tags || '')
+    
+    dialogVisible.value = true
   } catch (error) {
     console.error('获取套件信息失败:', error)
-    ElMessage.error('获取套件信息失败')
   }
 }
 
@@ -457,16 +430,11 @@ const handleSync = (row) => {
     }
   ).then(async () => {
     try {
-      const res = await syncSuiteCases(row.id)
-      if (res.code === 200) {
-        ElMessage.success(res.msg || '同步成功')
-        loadData()
-      } else {
-        ElMessage.error(res.msg || '同步失败')
-      }
+      await syncSuiteCases(row.id)
+      ElMessage.success('同步成功')
+      loadData()
     } catch (error) {
       console.error('同步失败:', error)
-      ElMessage.error('同步失败')
     }
   }).catch(() => {})
 }
@@ -483,14 +451,15 @@ const handleDelete = (row) => {
     }
   ).then(async () => {
     try {
-      const res = await deleteTestSuite(row.id, false)
-      if (res.code === 200) {
-        ElMessage.success('删除成功')
-        loadData()
-      } else if (res.code === 400 && res.msg.includes('测试单')) {
-        // 存在引用，询问是否强制删除
+      await deleteTestSuite(row.id, false)
+      ElMessage.success('删除成功')
+      loadData()
+    } catch (error) {
+      console.error('删除失败:', error)
+      const errorMsg = error.message || error
+      if (errorMsg.includes('测试单')) {
         ElMessageBox.confirm(
-          res.msg + '，是否强制删除？',
+          errorMsg + '，是否强制删除？',
           '警告',
           {
             confirmButtonText: '强制删除',
@@ -498,20 +467,15 @@ const handleDelete = (row) => {
             type: 'warning'
           }
         ).then(async () => {
-          const forceRes = await deleteTestSuite(row.id, true)
-          if (forceRes.code === 200) {
+          try {
+            await deleteTestSuite(row.id, true)
             ElMessage.success('删除成功')
             loadData()
-          } else {
-            ElMessage.error(forceRes.msg || '删除失败')
+          } catch (err) {
+            console.error('强制删除失败:', err)
           }
-        })
-      } else {
-        ElMessage.error(res.msg || '删除失败')
+        }).catch(() => {})
       }
-    } catch (error) {
-      console.error('删除失败:', error)
-      ElMessage.error('删除失败')
     }
   }).catch(() => {})
 }
@@ -521,16 +485,11 @@ const handlePreview = async () => {
   const conditions = buildFilterConditions()
   
   try {
-    const res = await previewMatchedCases(0, conditions)
-    if (res.code === 200) {
-      previewCount.value = res.data.matched_count
-      ElMessage.success(`预计匹配 ${res.data.matched_count} 个用例`)
-    } else {
-      ElMessage.error(res.msg || '预览失败')
-    }
+    const result = await previewMatchedCases(0, conditions)
+    previewCount.value = result.matched_count
+    ElMessage.success(`预计匹配 ${result.matched_count} 个用例`)
   } catch (error) {
     console.error('预览失败:', error)
-    ElMessage.error('预览失败')
   }
 }
 
@@ -571,20 +530,17 @@ const handleSubmit = async () => {
           filter_conditions: buildFilterConditions()
         }
         
-        const res = editingId.value 
-          ? await updateTestSuite(editingId.value, data)
-          : await createTestSuite(data)
-          
-        if (res.code === 200) {
-          ElMessage.success(res.msg || (editingId.value ? '更新成功' : '创建成功'))
-          dialogVisible.value = false
-          loadData()
+        if (editingId.value) {
+          await updateTestSuite(editingId.value, data)
         } else {
-          ElMessage.error(res.msg || '操作失败')
+          await createTestSuite(data)
         }
+        
+        ElMessage.success(editingId.value ? '更新成功' : '创建成功')
+        dialogVisible.value = false
+        loadData()
       } catch (error) {
         console.error('提交失败:', error)
-        ElMessage.error('提交失败')
       } finally {
         submitting.value = false
       }
@@ -624,10 +580,6 @@ onMounted(() => {
 <style scoped lang="less">
 .test-suites-container {
   padding: 20px;
-  
-  .page-header {
-    margin-bottom: 20px;
-  }
   
   .toolbar {
     margin-bottom: 20px;

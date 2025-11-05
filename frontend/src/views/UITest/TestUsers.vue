@@ -1,14 +1,5 @@
 <template>
   <div class="test-users-container">
-    <!-- 页面头部 -->
-    <div class="page-header">
-      <el-breadcrumb separator="/">
-        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item>UI测试</el-breadcrumb-item>
-        <el-breadcrumb-item>测试用户管理</el-breadcrumb-item>
-      </el-breadcrumb>
-    </div>
-
     <!-- 操作工具栏 -->
     <div class="toolbar">
       <el-button type="primary" @click="handleCreate">
@@ -537,10 +528,6 @@ onMounted(() => {
 <style scoped lang="less">
 .test-users-container {
   padding: 20px;
-  
-  .page-header {
-    margin-bottom: 20px;
-  }
   
   .toolbar {
     margin-bottom: 20px;

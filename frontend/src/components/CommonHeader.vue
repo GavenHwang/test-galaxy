@@ -54,6 +54,12 @@
         '/env/detail': { label: '环境详情', parent: '环境' },
         '/env/history': { label: '历史版本', parent: '环境' },
         '/user': { label: '用户管理' },
+        '/ui-test/elements': { label: '页面元素', parent: 'UI测试' },
+        '/ui-test/test-users': { label: '测试用户管理', parent: 'UI测试' },
+        '/ui-test/test-cases': { label: '测试用例', parent: 'UI测试' },
+        '/ui-test/test-suites': { label: '测试套件', parent: 'UI测试' },
+        '/ui-test/test-tasks': { label: '测试单', parent: 'UI测试' },
+        '/ui-test/test-reports': { label: '测试报告', parent: 'UI测试' },
     }
     
     // 动态生成面包屑

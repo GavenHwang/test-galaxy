@@ -1,14 +1,5 @@
 <template>
   <div class="test-reports-container">
-    <!-- 页面头部 -->
-    <div class="page-header">
-      <el-breadcrumb separator="/">
-        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item>UI测试</el-breadcrumb-item>
-        <el-breadcrumb-item>测试报告查看</el-breadcrumb-item>
-      </el-breadcrumb>
-    </div>
-
     <!-- 搜索筛选区 -->
     <div class="search-area">
       <el-form :inline="true" :model="searchForm" class="search-form">
@@ -134,16 +125,11 @@ const loadData = async () => {
       params.test_task_id = parseInt(searchForm.test_task_id)
     }
     
-    const res = await getTestReports(params)
-    if (res.code === 200) {
-      tableData.value = res.data.items || []
-      total.value = res.data.total || 0
-    } else {
-      ElMessage.error(res.msg || '获取数据失败')
-    }
+    const data = await getTestReports(params)
+    tableData.value = data.items || []
+    total.value = data.total || 0
   } catch (error) {
     console.error('加载数据失败:', error)
-    ElMessage.error('加载数据失败')
   } finally {
     loading.value = false
   }
@@ -188,10 +174,6 @@ onMounted(() => {
 <style scoped lang="less">
 .test-reports-container {
   padding: 20px;
-  
-  .page-header {
-    margin-bottom: 20px;
-  }
   
   .search-area {
     margin-bottom: 20px;

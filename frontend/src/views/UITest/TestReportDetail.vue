@@ -1,15 +1,5 @@
 <template>
   <div class="test-report-detail-container">
-    <!-- 页面头部 -->
-    <div class="page-header">
-      <el-breadcrumb separator="/">
-        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item>UI测试</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ path: '/ui-test/test-reports' }">测试报告</el-breadcrumb-item>
-        <el-breadcrumb-item>报告详情</el-breadcrumb-item>
-      </el-breadcrumb>
-    </div>
-
     <div v-if="reportData" v-loading="loading">
       <!-- 报告概览 -->
       <el-card class="summary-card">
@@ -319,19 +309,14 @@ const loadReportDetail = async () => {
   loading.value = true
   try {
     const reportId = route.params.id
-    const res = await getTestReportDetail(reportId)
-    if (res.code === 200) {
-      reportData.value = res.data
-      
-      // 等待DOM更新后初始化图表
-      await nextTick()
-      initCharts()
-    } else {
-      ElMessage.error(res.msg || '获取报告详情失败')
-    }
+    const report = await getTestReportDetail(reportId)
+    reportData.value = report
+    
+    // 等待DOM更新后初始化图表
+    await nextTick()
+    initCharts()
   } catch (error) {
     console.error('加载报告详情失败:', error)
-    ElMessage.error('加载报告详情失败')
   } finally {
     loading.value = false
   }
@@ -346,10 +331,6 @@ onMounted(() => {
 <style scoped lang="less">
 .test-report-detail-container {
   padding: 20px;
-  
-  .page-header {
-    margin-bottom: 20px;
-  }
   
   .summary-card {
     margin-bottom: 20px;

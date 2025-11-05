@@ -65,8 +65,8 @@ async def create_test_case(data: TestCaseCreateSchema, request: Request):
             precondition=test_case.precondition,
             expected_result=test_case.expected_result,
             created_by=test_case.created_by,
-            created_time=test_case.created_time,
-            updated_time=test_case.updated_time,
+            created_time=str(test_case.created_time),
+            updated_time=str(test_case.updated_time),
             steps=[],
             permission_roles=[],
             execution_count=0,
@@ -160,13 +160,13 @@ async def get_test_cases(
                 precondition=case.precondition,
                 expected_result=case.expected_result,
                 created_by=case.created_by,
-                created_time=case.created_time,
-                updated_time=case.updated_time,
+                created_time=str(case.created_time),
+                updated_time=str(case.updated_time),
                 steps=[],
                 permission_roles=permission_roles,
                 execution_count=execution_count,
                 last_execution_status=last_execution.status if last_execution else None,
-                last_execution_time=last_execution.start_time if last_execution else None
+                last_execution_time=str(last_execution.start_time) if last_execution else None
             )
             case_list.append(case_data)
         
@@ -235,13 +235,13 @@ async def get_test_case(case_id: int):
             precondition=case.precondition,
             expected_result=case.expected_result,
             created_by=case.created_by,
-            created_time=case.created_time,
-            updated_time=case.updated_time,
+            created_time=str(case.created_time),
+            updated_time=str(case.updated_time),
             steps=step_list,
             permission_roles=permission_roles,
             execution_count=execution_count,
             last_execution_status=last_execution.status if last_execution else None,
-            last_execution_time=last_execution.start_time if last_execution else None
+            last_execution_time=str(last_execution.start_time) if last_execution else None
         )
         
         return ResponseSchema.success(data=case_data)
@@ -307,13 +307,13 @@ async def update_test_case(case_id: int, data: TestCaseUpdateSchema):
             precondition=case.precondition,
             expected_result=case.expected_result,
             created_by=case.created_by,
-            created_time=case.created_time,
-            updated_time=case.updated_time,
+            created_time=str(case.created_time),
+            updated_time=str(case.updated_time),
             steps=step_list,
             permission_roles=permission_roles,
             execution_count=execution_count,
             last_execution_status=last_execution.status if last_execution else None,
-            last_execution_time=last_execution.start_time if last_execution else None
+            last_execution_time=str(last_execution.start_time) if last_execution else None
         )
         
         return ResponseSchema.success(data=case_data, msg="更新成功")
@@ -443,8 +443,8 @@ async def copy_test_case(case_id: int, request: Request):
             precondition=new_case.precondition,
             expected_result=new_case.expected_result,
             created_by=new_case.created_by,
-            created_time=new_case.created_time,
-            updated_time=new_case.updated_time,
+            created_time=str(new_case.created_time),
+            updated_time=str(new_case.updated_time),
             steps=step_list,
             permission_roles=[],
             execution_count=0,
