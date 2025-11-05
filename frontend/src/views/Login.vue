@@ -41,7 +41,7 @@
 </template>
 
 <script setup>
-import {ref, getCurrentInstance, reactive} from 'vue';
+import {ref, getCurrentInstance, reactive, onMounted} from 'vue';
 import {useRouter} from 'vue-router'
 // 请求代理
 const {proxy} = getCurrentInstance()
@@ -106,6 +106,30 @@ const handleSubmit = async () => {
     isSubmitting.value = false;
   }
 };
+
+// 检查是否为本地环境并自动登录
+const autoLoginIfLocal = async () => {
+  const hostname = window.location.hostname;
+  
+  // 判断是否为本地环境（localhost 或 127.0.0.1）
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    console.log('检测到本地环境，自动登录中...');
+    
+    // 自动填充用户名和密码
+    loginForm.username = 'admin';
+    loginForm.password = '111111aA';
+    
+    // 延迟 500ms 后自动提交登录（让用户看到自动填充的过程）
+    setTimeout(() => {
+      handleSubmit();
+    }, 500);
+  }
+};
+
+// 页面加载时检查是否需要自动登录
+onMounted(() => {
+  autoLoginIfLocal();
+});
 </script>
 
 <style scoped>
