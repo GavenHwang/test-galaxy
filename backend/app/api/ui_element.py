@@ -78,8 +78,8 @@ async def create_element(data: UIElementCreateSchema, request: Request):
             module=element.module,
             description=element.description,
             created_by=element.created_by,
-            created_time=element.created_time,
-            updated_time=element.updated_time,
+            created_time=str(element.created_time),
+            updated_time=str(element.updated_time),
             related_cases_count=0,
             permission_roles=[]
         )
@@ -147,8 +147,8 @@ async def get_elements(
                 module=element.module,
                 description=element.description,
                 created_by=element.created_by,
-                created_time=element.created_time,
-                updated_time=element.updated_time,
+                created_time=str(element.created_time),
+                updated_time=str(element.updated_time),
                 related_cases_count=related_cases_count,
                 permission_roles=permission_roles
             )
@@ -197,8 +197,8 @@ async def get_element(element_id: int):
             module=element.module,
             description=element.description,
             created_by=element.created_by,
-            created_time=element.created_time,
-            updated_time=element.updated_time,
+            created_time=str(element.created_time),
+            updated_time=str(element.updated_time),
             related_cases_count=related_cases_count,
             permission_roles=permission_roles
         )
@@ -277,8 +277,8 @@ async def update_element(element_id: int, data: UIElementUpdateSchema):
             module=element.module,
             description=element.description,
             created_by=element.created_by,
-            created_time=element.created_time,
-            updated_time=element.updated_time,
+            created_time=str(element.created_time),
+            updated_time=str(element.updated_time),
             related_cases_count=related_cases_count,
             permission_roles=permission_roles
         )

@@ -20,11 +20,26 @@ VALUES ('页面元素', '/ui-test/elements', 'Grid', @ui_test_id, NOW(), NOW());
 INSERT INTO menu (label, path, icon, parent_id, created_time, updated_time)
 VALUES ('测试用例', '/ui-test/test-cases', 'DocumentCopy', @ui_test_id, NOW(), NOW());
 
--- 5. 关联菜单到角色（假设角色为 admin，ID 为 1）
+-- 5. 添加二级菜单：测试套件
+INSERT INTO menu (label, path, icon, parent_id, created_time, updated_time)
+VALUES ('测试套件', '/ui-test/test-suites', 'FolderOpened', @ui_test_id, NOW(), NOW());
+
+-- 6. 添加二级菜单：测试单
+INSERT INTO menu (label, path, icon, parent_id, created_time, updated_time)
+VALUES ('测试单', '/ui-test/test-tasks', 'List', @ui_test_id, NOW(), NOW());
+
+-- 7. 添加二级菜单：测试报告
+INSERT INTO menu (label, path, icon, parent_id, created_time, updated_time)
+VALUES ('测试报告', '/ui-test/test-reports', 'Document', @ui_test_id, NOW(), NOW());
+
+-- 8. 关联菜单到角色（假设角色为 admin，ID 为 1）
 -- 获取刚插入的菜单 ID
 SET @test_users_id = (SELECT id FROM menu WHERE path = '/ui-test/test-users');
 SET @elements_id = (SELECT id FROM menu WHERE path = '/ui-test/elements');
 SET @test_cases_id = (SELECT id FROM menu WHERE path = '/ui-test/test-cases');
+SET @test_suites_id = (SELECT id FROM menu WHERE path = '/ui-test/test-suites');
+SET @test_tasks_id = (SELECT id FROM menu WHERE path = '/ui-test/test-tasks');
+SET @test_reports_id = (SELECT id FROM menu WHERE path = '/ui-test/test-reports');
 
 -- 关联到 admin 角色（假设 admin 角色 ID 为 1）
 INSERT INTO role_menu (role_id, menu_id)
@@ -32,7 +47,10 @@ VALUES
     (1, @ui_test_id),
     (1, @test_users_id),
     (1, @elements_id),
-    (1, @test_cases_id);
+    (1, @test_cases_id),
+    (1, @test_suites_id),
+    (1, @test_tasks_id),
+    (1, @test_reports_id);
 
 -- 验证插入结果
 SELECT m.id, m.label, m.path, m.icon, m.parent_id, p.label as parent_label

@@ -1,0 +1,46 @@
+-- 创建产品角色字典表
+CREATE TABLE IF NOT EXISTS `test_product_roles` (
+  `id` INT PRIMARY KEY AUTO_INCREMENT COMMENT 'ID',
+  `product` VARCHAR(100) NOT NULL COMMENT '产品名称',
+  `role_name` VARCHAR(100) NOT NULL COMMENT '角色名称',
+  `role_code` VARCHAR(50) NOT NULL COMMENT '角色编码',
+  `description` TEXT NULL COMMENT '描述',
+  `created_by` VARCHAR(50) NOT NULL COMMENT '创建人',
+  `created_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  UNIQUE KEY `uk_product_role` (`product`, `role_name`),
+  INDEX `idx_product` (`product`),
+  INDEX `idx_role_code` (`role_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='产品角色字典表';
+
+-- 插入示例数据（可选）
+INSERT INTO `test_product_roles` (`product`, `role_name`, `role_code`, `description`, `created_by`) VALUES
+('平台端', '普通用户', 'common', '', 'system'),
+('平台端', '团队管理员', 'leader', '', 'system'),
+('平台端', '团队成员', 'member', '', 'system'),
+('平台端', '商家管理员', 'retaileradmin', '', 'system'),
+('平台端', '业务顾问', 'saler', '', 'system'),
+('平台端', '运营专员', 'assistant', '', 'system'),
+('平台端', '区域管理员', 'operator', '', 'system'),
+('平台端', '运营管理员', 'operateadmin', '', 'system'),
+('平台端', '超级管理员', 'superadmin', '', 'system'),
+('平台端', '市场专员', 'market', '', 'system'),
+('平台端', 'L4工程师', 'maintenance', '', 'system'),
+('平台端', '财务', 'financial', '', 'system'),
+('平台端', '法务', 'legal', '', 'system'),
+('平台端', '商务', 'operateBusiness', '', 'system'),
+('平台端', '营销', 'salesBusiness', '', 'system'),
+('平台端', '销售总监', 'salerMaster', '', 'system'),
+('平台端', '大区经理', 'salerCluster', '', 'system'),
+('平台端', '视频频道管理员', 'videochanneladmin', '', 'system'),
+('平台端', '运营数据管理员', 'dataadmin', '', 'system'),
+('平台端', '商城运营管理员', 'mallopadmin', '', 'system'),
+('平台端', '神策数据管理员', 'sensorsDataAdmin', '', 'system'),
+('平台端', '广告位管理', 'adadmin', '', 'system'),
+('平台端', '互联网销售', 'internetSaler', '', 'system'),
+('平台端', '销售管理', 'salerManage', '', 'system'),
+('平台端', 'AI助手管理员', 'aiassistantadmin', '', 'system'),
+('平台端', '合同管理员', 'contractopadmin', '', 'system'),
+('平台端', '资产管理员', 'cmdbadmin', '', 'system'),
+('平台端', '算力商品运营人员', 'resourceOperator', '', 'system'),
+('平台端', 'BGP数据处理员', 'dataOperation', '', 'system');

@@ -315,3 +315,253 @@ export const batchUpdateCaseStatus = (caseIds, status) => {
     data: { case_ids: caseIds, status }
   })
 }
+
+/**
+ * 测试套件管理API
+ */
+
+// 创建测试套件
+export const createTestSuite = (data) => {
+  return request({
+    url: '/api/ui-test/test-suites',
+    method: 'post',
+    data
+  })
+}
+
+// 获取测试套件列表
+export const getTestSuites = (params) => {
+  return request({
+    url: '/api/ui-test/test-suites',
+    method: 'get',
+    params
+  })
+}
+
+// 获取单个测试套件详情
+export const getTestSuiteDetail = (suiteId) => {
+  return request({
+    url: `/api/ui-test/test-suites/${suiteId}`,
+    method: 'get'
+  })
+}
+
+// 更新测试套件
+export const updateTestSuite = (suiteId, data) => {
+  return request({
+    url: `/api/ui-test/test-suites/${suiteId}`,
+    method: 'put',
+    data
+  })
+}
+
+// 删除测试套件
+export const deleteTestSuite = (suiteId, force = false) => {
+  return request({
+    url: `/api/ui-test/test-suites/${suiteId}`,
+    method: 'delete',
+    params: { force }
+  })
+}
+
+// 预览匹配用例
+export const previewMatchedCases = (suiteId, filterConditions) => {
+  return request({
+    url: `/api/ui-test/test-suites/${suiteId}/preview`,
+    method: 'post',
+    data: filterConditions
+  })
+}
+
+// 获取套件用例
+export const getSuiteCases = (suiteId) => {
+  return request({
+    url: `/api/ui-test/test-suites/${suiteId}/cases`,
+    method: 'get'
+  })
+}
+
+// 添加用例到套件
+export const addCasesToSuite = (suiteId, caseIds) => {
+  return request({
+    url: `/api/ui-test/test-suites/${suiteId}/cases`,
+    method: 'post',
+    data: caseIds
+  })
+}
+
+// 从套件移除用例
+export const removeCaseFromSuite = (suiteId, caseId) => {
+  return request({
+    url: `/api/ui-test/test-suites/${suiteId}/cases/${caseId}`,
+    method: 'delete'
+  })
+}
+
+// 调整用例顺序
+export const reorderSuiteCases = (suiteId, caseIds) => {
+  return request({
+    url: `/api/ui-test/test-suites/${suiteId}/cases/reorder`,
+    method: 'post',
+    data: caseIds
+  })
+}
+
+// 同步筛选条件
+export const syncSuiteCases = (suiteId) => {
+  return request({
+    url: `/api/ui-test/test-suites/${suiteId}/sync`,
+    method: 'post'
+  })
+}
+
+/**
+ * 测试单管理API
+ */
+
+// 创建测试单
+export const createTestTask = (data) => {
+  return request({
+    url: '/api/ui-test/test-tasks',
+    method: 'post',
+    data
+  })
+}
+
+// 获取测试单列表
+export const getTestTasks = (params) => {
+  return request({
+    url: '/api/ui-test/test-tasks',
+    method: 'get',
+    params
+  })
+}
+
+// 获取单个测试单详情
+export const getTestTaskDetail = (taskId) => {
+  return request({
+    url: `/api/ui-test/test-tasks/${taskId}`,
+    method: 'get'
+  })
+}
+
+// 更新测试单
+export const updateTestTask = (taskId, data) => {
+  return request({
+    url: `/api/ui-test/test-tasks/${taskId}`,
+    method: 'put',
+    data
+  })
+}
+
+// 删除测试单
+export const deleteTestTask = (taskId) => {
+  return request({
+    url: `/api/ui-test/test-tasks/${taskId}`,
+    method: 'delete'
+  })
+}
+
+// 执行测试单
+export const executeTestTask = (taskId) => {
+  return request({
+    url: `/api/ui-test/test-tasks/${taskId}/execute`,
+    method: 'post'
+  })
+}
+
+// 取消执行
+export const cancelTestTask = (taskId) => {
+  return request({
+    url: `/api/ui-test/test-tasks/${taskId}/cancel`,
+    method: 'post'
+  })
+}
+
+// 获取执行进度
+export const getTaskProgress = (taskId) => {
+  return request({
+    url: `/api/ui-test/test-tasks/${taskId}/progress`,
+    method: 'get'
+  })
+}
+
+// 获取测试内容
+export const getTaskContents = (taskId) => {
+  return request({
+    url: `/api/ui-test/test-tasks/${taskId}/contents`,
+    method: 'get'
+  })
+}
+
+// 添加测试内容
+export const addTaskContent = (taskId, itemType, itemId) => {
+  return request({
+    url: `/api/ui-test/test-tasks/${taskId}/contents`,
+    method: 'post',
+    params: { item_type: itemType, item_id: itemId }
+  })
+}
+
+// 移除测试内容
+export const removeTaskContent = (taskId, contentId) => {
+  return request({
+    url: `/api/ui-test/test-tasks/${taskId}/contents/${contentId}`,
+    method: 'delete'
+  })
+}
+
+// 调整执行顺序
+export const reorderTaskContents = (taskId, contentIds) => {
+  return request({
+    url: `/api/ui-test/test-tasks/${taskId}/contents/reorder`,
+    method: 'post',
+    data: contentIds
+  })
+}
+
+// 获取执行报告列表
+export const getTaskReports = (taskId) => {
+  return request({
+    url: `/api/ui-test/test-tasks/${taskId}/reports`,
+    method: 'get'
+  })
+}
+
+/**
+ * 测试报告管理API
+ */
+
+// 获取测试报告列表
+export const getTestReports = (params) => {
+  return request({
+    url: '/api/ui-test/test-reports',
+    method: 'get',
+    params
+  })
+}
+
+// 获取测试报告详情
+export const getTestReportDetail = (reportId) => {
+  return request({
+    url: `/api/ui-test/test-reports/${reportId}`,
+    method: 'get'
+  })
+}
+
+// 获取报告摘要
+export const getReportSummary = (reportId) => {
+  return request({
+    url: `/api/ui-test/test-reports/${reportId}/summary`,
+    method: 'get'
+  })
+}
+
+// 对比多个报告
+export const compareReports = (reportIds) => {
+  return request({
+    url: '/api/ui-test/test-reports/compare',
+    method: 'get',
+    params: { report_ids: reportIds.join(',') }
+  })
+}

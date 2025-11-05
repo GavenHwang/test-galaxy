@@ -10,7 +10,7 @@ from app.schemas.ui_test import (
     TestUserResponseSchema,
     TestUserListParams
 )
-from app.models.ui_test import TestCommonUser, TestUIElementPermission, TestUICasePermission
+from app.models.ui_test import TestCommonUser, TestUIElementPermission, TestUICasePermission, TestProductRole
 from tortoise.expressions import Q
 
 router = APIRouter()
@@ -62,8 +62,8 @@ async def create_test_user(data: TestUserCreateSchema, request: Request):
             role_name=user.role_name,
             description=user.description,
             created_by=user.created_by,
-            created_time=user.created_time,
-            updated_time=user.updated_time
+            created_time=str(user.created_time),
+            updated_time=str(user.updated_time)
         )
         
         return ResponseSchema.success(data=user_data, msg="创建成功")
@@ -116,8 +116,8 @@ async def get_test_users(
                 role_name=user.role_name,
                 description=user.description,
                 created_by=user.created_by,
-                created_time=user.created_time,
-                updated_time=user.updated_time
+                created_time=str(user.created_time),
+                updated_time=str(user.updated_time)
             )
             for user in users
         ]
@@ -157,8 +157,8 @@ async def get_test_user(user_id: int):
             role_name=user.role_name,
             description=user.description,
             created_by=user.created_by,
-            created_time=user.created_time,
-            updated_time=user.updated_time
+            created_time=str(user.created_time),
+            updated_time=str(user.updated_time)
         )
         
         return ResponseSchema.success(data=user_data)
@@ -218,8 +218,8 @@ async def update_test_user(user_id: int, data: TestUserUpdateSchema):
             role_name=user.role_name,
             description=user.description,
             created_by=user.created_by,
-            created_time=user.created_time,
-            updated_time=user.updated_time
+            created_time=str(user.created_time),
+            updated_time=str(user.updated_time)
         )
         
         return ResponseSchema.success(data=user_data, msg="更新成功")
@@ -277,11 +277,11 @@ async def delete_test_user(user_id: int, force: bool = Query(False, description=
 @router.get("/products/list", summary="获取产品列表")
 async def get_products():
     """
-    获取所有不重复的产品列表，用于下拉选择器
+    从产品角色字典表获取所有不重复的产品列表，用于下拉选择器
     """
     try:
-        # 查询所有不重复的产品
-        products = await TestCommonUser.all().distinct().values_list('product', flat=True)
+        # 从字典表查询所有不重复的产品
+        products = await TestProductRole.all().distinct().values_list('product', flat=True)
         
         # 过滤空值并排序
         products = sorted([p for p in products if p])
@@ -293,13 +293,22 @@ async def get_products():
 
 
 @router.get("/roles/list", summary="获取角色列表")
-async def get_roles():
+async def get_roles(product: Optional[str] = Query(None, description="产品名称，用于过滤角色")):
     """
-    获取所有不重复的角色列表，用于下拉选择器
+    从产品角色字典表获取角色列表
+    
+    参数：
+    - product: 可选，如果提供则只返回该产品下的角色
     """
     try:
+        # 构建查询条件
+        query = TestProductRole.all()
+        
+        if product:
+            query = query.filter(product=product)
+        
         # 查询所有不重复的角色
-        roles = await TestCommonUser.all().distinct().values_list('role_name', flat=True)
+        roles = await query.distinct().values_list('role_name', flat=True)
         
         # 过滤空值并排序
         roles = sorted([r for r in roles if r])

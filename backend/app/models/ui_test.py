@@ -13,7 +13,8 @@ __all__ = [
     'TestCommonUser', 'TestUIElement', 'TestUIElementPermission',
     'TestUICase', 'TestUICasePermission', 'TestUIStep', 'TestUICaseSuite',
     'TestUICasesSuitesRelation', 'TestUITask', 'TestUITaskContent',
-    'TestUIReport', 'TestUICaseExecutionRecord', 'TestUICaseStepExecutionRecord'
+    'TestUIReport', 'TestUICaseExecutionRecord', 'TestUICaseStepExecutionRecord',
+    'TestProductRole'  # 新增产品角色字典表
 ]
 
 
@@ -90,6 +91,21 @@ class ExecutionStatus(str, Enum):
 
 
 # ==================== 模型定义 ====================
+
+class TestProductRole(BaseModel, TimestampMixin):
+    """产品角色字典表"""
+    product = fields.CharField(max_length=100, index=True, description="产品名称")
+    role_name = fields.CharField(max_length=100, description="角色名称")
+    role_code = fields.CharField(max_length=50, index=True, description="角色编码")
+    description = fields.TextField(null=True, description="描述")
+    created_by = fields.CharField(max_length=50, description="创建人")
+
+    class Meta(BaseModel.Meta):
+        table = "test_product_roles"
+        table_description = "产品角色字典表"
+        unique_together = (("product", "role_name"),)
+        abstract = False
+
 
 class TestCommonUser(BaseModel, TimestampMixin):
     """测试用户表（被测系统的业务用户）"""

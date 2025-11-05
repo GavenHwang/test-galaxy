@@ -311,16 +311,13 @@ const loadData = async () => {
       }
     })
     
-    const res = await getTestUsers(params)
-    if (res.code === 200) {
-      tableData.value = res.data.items || []
-      total.value = res.data.total || 0
-    } else {
-      ElMessage.error(res.msg || '获取数据失败')
-    }
+    // 注意：响应拦截器在 code===200 时直接返回 data
+    const data = await getTestUsers(params)
+    tableData.value = data.items || []
+    total.value = data.total || 0
   } catch (error) {
     console.error('加载数据失败:', error)
-    ElMessage.error('加载数据失败')
+    // 响应拦截器已经显示了错误消息
   } finally {
     loading.value = false
   }
@@ -329,20 +326,24 @@ const loadData = async () => {
 // 加载产品和角色选项
 const loadOptions = async () => {
   try {
-    const [productsRes, rolesRes] = await Promise.all([
+    // 注意：响应拦截器在 code===200 时直接返回 data，所以这里收到的就是数组
+    const [products, roles] = await Promise.all([
       getProducts(),
       getRoles()
     ])
     
-    if (productsRes.code === 200) {
-      productOptions.value = productsRes.data || []
-    }
+    console.log('产品列表:', products)
+    console.log('角色列表:', roles)
     
-    if (rolesRes.code === 200) {
-      roleOptions.value = rolesRes.data || []
-    }
+    // 直接使用返回的数组数据
+    productOptions.value = products || []
+    roleOptions.value = roles || []
+    
+    console.log('产品选项已设置:', productOptions.value)
+    console.log('角色选项已设置:', roleOptions.value)
   } catch (error) {
     console.error('加载选项失败:', error)
+    ElMessage.error('加载选项失败: ' + (error.message || error))
   }
 }
 
@@ -353,11 +354,10 @@ const togglePassword = async (row) => {
   if (!passwordVisible.value[id]) {
     // 如果要显示密码，先获取明文密码
     try {
-      const res = await getTestUserDetail(id)
-      if (res.code === 200) {
-        row.actualPassword = res.data.password
-        passwordVisible.value[id] = true
-      }
+      // 注意：响应拦截器在 code===200 时直接返回 data
+      const userData = await getTestUserDetail(id)
+      row.actualPassword = userData.password
+      passwordVisible.value[id] = true
     } catch (error) {
       console.error('获取密码失败:', error)
     }
@@ -434,14 +434,17 @@ const handleDelete = (row) => {
     }
   ).then(async () => {
     try {
-      const res = await deleteTestUser(row.id, false)
-      if (res.code === 200) {
-        ElMessage.success('删除成功')
-        loadData()
-      } else if (res.code === 400 && res.msg.includes('关联')) {
+      // 注意：响应拦截器在 code!==200 时会reject，所以需要 try-catch
+      await deleteTestUser(row.id, false)
+      ElMessage.success('删除成功')
+      loadData()
+    } catch (error) {
+      // 检查是否是关联错误（需要根据实际错误信息判断）
+      const errorMsg = error?.message || error || ''
+      if (errorMsg.includes('关联')) {
         // 存在关联，询问是否强制删除
         ElMessageBox.confirm(
-          res.msg + '，是否强制删除？',
+          errorMsg + '，是否强制删除？',
           '警告',
           {
             confirmButtonText: '强制删除',
@@ -449,20 +452,17 @@ const handleDelete = (row) => {
             type: 'warning'
           }
         ).then(async () => {
-          const forceRes = await deleteTestUser(row.id, true)
-          if (forceRes.code === 200) {
+          try {
+            await deleteTestUser(row.id, true)
             ElMessage.success('删除成功')
             loadData()
-          } else {
-            ElMessage.error(forceRes.msg || '删除失败')
+          } catch (forceError) {
+            console.error('强制删除失败:', forceError)
           }
-        })
+        }).catch(() => {})
       } else {
-        ElMessage.error(res.msg || '删除失败')
+        console.error('删除失败:', error)
       }
-    } catch (error) {
-      console.error('删除失败:', error)
-      ElMessage.error('删除失败')
     }
   }).catch(() => {
     // 取消删除
@@ -478,7 +478,6 @@ const handleSubmit = async () => {
     
     submitLoading.value = true
     try {
-      let res
       const submitData = { ...formData }
       
       // 如果是编辑且密码为空，删除password字段
@@ -486,23 +485,23 @@ const handleSubmit = async () => {
         delete submitData.password
       }
       
+      // 注意：响应拦截器在 code===200 时直接返回 data 字段
+      // 所以这里收到的是用户数据对象，而不是完整响应对象
       if (isEdit.value) {
-        res = await updateTestUser(editId.value, submitData)
+        await updateTestUser(editId.value, submitData)
       } else {
-        res = await createTestUser(submitData)
+        await createTestUser(submitData)
       }
       
-      if (res.code === 200) {
-        ElMessage.success(res.msg || (isEdit.value ? '更新成功' : '创建成功'))
-        dialogVisible.value = false
-        loadData()
-        loadOptions() // 刷新选项列表
-      } else {
-        ElMessage.error(res.msg || '操作失败')
-      }
+      // 成功执行到这里说明没有抛出异常（响应拦截器会在失败时reject）
+      ElMessage.success(isEdit.value ? '更新成功' : '创建成功')
+      dialogVisible.value = false
+      loadData()
+      loadOptions() // 刷新选项列表
     } catch (error) {
       console.error('提交失败:', error)
-      ElMessage.error('操作失败')
+      // 响应拦截器已经显示了错误消息，这里不需要重复显示
+      // ElMessage.error('操作失败')
     } finally {
       submitLoading.value = false
     }

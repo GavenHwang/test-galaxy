@@ -83,6 +83,26 @@ const routes = [
                         path: "test-cases/:id/edit",
                         name: "test-case-edit",
                         component: () => import('@/views/UITest/TestCaseDetail.vue'),
+                    },
+                    {
+                        path: "test-suites",
+                        name: "test-suites",
+                        component: () => import('@/views/UITest/TestSuites.vue'),
+                    },
+                    {
+                        path: "test-tasks",
+                        name: "test-tasks",
+                        component: () => import('@/views/UITest/TestTasks.vue'),
+                    },
+                    {
+                        path: "test-reports",
+                        name: "test-reports",
+                        component: () => import('@/views/UITest/TestReports.vue'),
+                    },
+                    {
+                        path: "test-reports/:id",
+                        name: "test-report-detail",
+                        component: () => import('@/views/UITest/TestReportDetail.vue'),
                     }
                 ]
             }

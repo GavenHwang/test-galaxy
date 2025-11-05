@@ -182,9 +182,10 @@
         <el-form-item label="所属页面" prop="page">
           <el-select
             v-model="formData.page"
-            placeholder="请选择或输入页面URL"
+            placeholder="请选择或直接输入页面URL"
             filterable
             allow-create
+            default-first-option
             style="width: 100%"
           >
             <el-option
@@ -194,13 +195,16 @@
               :value="item"
             />
           </el-select>
+          <div class="form-tip">支持直接输入新的页面URL，或从列表中选择</div>
         </el-form-item>
         <el-form-item label="所属模块" prop="module">
           <el-select
             v-model="formData.module"
-            placeholder="请选择或输入模块名称"
+            placeholder="请选择或直接输入模块名称（可选）"
             filterable
             allow-create
+            default-first-option
+            clearable
             style="width: 100%"
           >
             <el-option
@@ -210,6 +214,7 @@
               :value="item"
             />
           </el-select>
+          <div class="form-tip">支持直接输入新的模块名称，或从列表中选择</div>
         </el-form-item>
         <el-form-item label="描述" prop="description">
           <el-input
@@ -421,16 +426,11 @@ const loadData = async () => {
       }
     })
     
-    const res = await getElements(params)
-    if (res.code === 200) {
-      tableData.value = res.data.items || []
-      total.value = res.data.total || 0
-    } else {
-      ElMessage.error(res.msg || '获取数据失败')
-    }
+    const data = await getElements(params)
+    tableData.value = data.items || []
+    total.value = data.total || 0
   } catch (error) {
     console.error('加载数据失败:', error)
-    ElMessage.error('加载数据失败')
   } finally {
     loading.value = false
   }
@@ -439,18 +439,13 @@ const loadData = async () => {
 // 加载选项
 const loadOptions = async () => {
   try {
-    const [pagesRes, modulesRes] = await Promise.all([
+    const [pages, modules] = await Promise.all([
       getPages(),
       getModules()
     ])
     
-    if (pagesRes.code === 200) {
-      pageOptions.value = pagesRes.data || []
-    }
-    
-    if (modulesRes.code === 200) {
-      moduleOptions.value = modulesRes.data || []
-    }
+    pageOptions.value = pages || []
+    moduleOptions.value = modules || []
   } catch (error) {
     console.error('加载选项失败:', error)
   }
@@ -525,20 +520,13 @@ const handleDelete = (row) => {
     }
   ).then(async () => {
     try {
-      const res = await deleteElement(row.id)
-      if (res.code === 200) {
-        ElMessage.success('删除成功')
-        loadData()
-      } else {
-        ElMessage.error(res.msg || '删除失败')
-      }
+      await deleteElement(row.id)
+      ElMessage.success('删除成功')
+      loadData()
     } catch (error) {
       console.error('删除失败:', error)
-      ElMessage.error('删除失败')
     }
-  }).catch(() => {
-    // 取消删除
-  })
+  }).catch(() => {})
 }
 
 // 设置权限
@@ -546,25 +534,20 @@ const handleSetPermissions = async (row) => {
   currentElementId.value = row.id
   
   try {
-    // 加载所有角色
-    const rolesRes = await getRoles()
-    if (rolesRes.code === 200) {
-      allRoles.value = (rolesRes.data || []).map(role => ({
-        key: role,
-        label: role
-      }))
-    }
+    const [roles, perms] = await Promise.all([
+      getRoles(),
+      getElementPermissions(row.id)
+    ])
     
-    // 加载当前权限
-    const permsRes = await getElementPermissions(row.id)
-    if (permsRes.code === 200) {
-      selectedRoles.value = permsRes.data || []
-    }
+    allRoles.value = (roles || []).map(role => ({
+      key: role,
+      label: role
+    }))
+    selectedRoles.value = perms || []
     
     permissionDrawerVisible.value = true
   } catch (error) {
     console.error('加载权限失败:', error)
-    ElMessage.error('加载权限失败')
   }
 }
 
@@ -572,20 +555,15 @@ const handleSetPermissions = async (row) => {
 const handleSavePermissions = async () => {
   permissionLoading.value = true
   try {
-    const res = await setElementPermissions(currentElementId.value, {
+    await setElementPermissions(currentElementId.value, {
       roles: selectedRoles.value
     })
     
-    if (res.code === 200) {
-      ElMessage.success('权限设置成功')
-      permissionDrawerVisible.value = false
-      loadData()
-    } else {
-      ElMessage.error(res.msg || '设置失败')
-    }
+    ElMessage.success('权限设置成功')
+    permissionDrawerVisible.value = false
+    loadData()
   } catch (error) {
     console.error('设置权限失败:', error)
-    ElMessage.error('设置权限失败')
   } finally {
     permissionLoading.value = false
   }
@@ -594,17 +572,12 @@ const handleSavePermissions = async () => {
 // 查看关联用例
 const handleViewRelatedCases = async (row) => {
   try {
-    const res = await getElementRelatedCases(row.id)
-    if (res.code === 200) {
-      relatedCases.value = res.data || []
-      activeCaseIds.value = relatedCases.value.length > 0 ? [relatedCases.value[0].case_id] : []
-      relatedCasesDrawerVisible.value = true
-    } else {
-      ElMessage.error(res.msg || '加载失败')
-    }
+    const cases = await getElementRelatedCases(row.id)
+    relatedCases.value = cases || []
+    activeCaseIds.value = relatedCases.value.length > 0 ? [relatedCases.value[0].case_id] : []
+    relatedCasesDrawerVisible.value = true
   } catch (error) {
     console.error('加载关联用例失败:', error)
-    ElMessage.error('加载关联用例失败')
   }
 }
 
@@ -617,26 +590,20 @@ const handleSubmit = async () => {
     
     submitLoading.value = true
     try {
-      let res
       const submitData = { ...formData }
       
       if (isEdit.value) {
-        res = await updateElement(editId.value, submitData)
+        await updateElement(editId.value, submitData)
       } else {
-        res = await createElement(submitData)
+        await createElement(submitData)
       }
       
-      if (res.code === 200) {
-        ElMessage.success(res.msg || (isEdit.value ? '更新成功' : '创建成功'))
-        dialogVisible.value = false
-        loadData()
-        loadOptions()
-      } else {
-        ElMessage.error(res.msg || '操作失败')
-      }
+      ElMessage.success(isEdit.value ? '更新成功' : '创建成功')
+      dialogVisible.value = false
+      loadData()
+      loadOptions()
     } catch (error) {
       console.error('提交失败:', error)
-      ElMessage.error('操作失败')
     } finally {
       submitLoading.value = false
     }
