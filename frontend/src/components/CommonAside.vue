@@ -108,10 +108,18 @@ onMounted(() => {
     }
 }
 
+// 重置 Element Plus 默认内边距
+:deep(.el-menu-item),
+:deep(.el-sub-menu__title) {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+// 一级菜单项样式
 :deep(.el-menu-item) {
     transition: @transition-base;
     border-left: 4px solid transparent;
-    padding-left: @spacing-lg;
+    padding-left: 20px !important;
     height: 42px;
     line-height: 42px;
 }
@@ -128,23 +136,34 @@ onMounted(() => {
     font-weight: 500;
 }
 
+// 子菜单标题样式（一级菜单）
 :deep(.el-sub-menu__title) {
     height: 42px;
     line-height: 42px;
     border-left: 4px solid transparent;
-    padding-left: @spacing-lg !important;
+    padding-left: 20px !important;
 }
 
 :deep(.el-sub-menu__title:hover) {
     background-color: #f5f5f5 !important;
 }
 
-// 子菜单项样式
+// 隐藏子菜单分组标题
 :deep(.el-menu-item-group__title) {
     padding: 0;
     height: 0;
     line-height: 0;
     overflow: hidden;
+}
+
+// 二级菜单项样式（增加缩进）
+:deep(.el-sub-menu .el-menu-item) {
+    border-left: 4px solid transparent;
+    padding-left: 44px !important; // 20px 基础 + 24px 缩进
+}
+
+:deep(.el-sub-menu .el-menu-item.is-active) {
+    border-left-color: @primary-color;
 }
 
 .el-aside {

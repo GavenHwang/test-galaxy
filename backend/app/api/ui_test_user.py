@@ -8,7 +8,7 @@ from app.schemas.ui_test import (
     TestUserCreateSchema,
     TestUserUpdateSchema,
     TestUserResponseSchema,
-    TestUserListParamsSchema
+    TestUserListParams
 )
 from app.models.ui_test import TestCommonUser, TestUIElementPermission, TestUICasePermission
 from tortoise.expressions import Q

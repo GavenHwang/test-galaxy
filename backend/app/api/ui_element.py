@@ -9,7 +9,7 @@ from app.schemas.ui_test import (
     UIElementUpdateSchema,
     UIElementResponseSchema,
     UIElementBatchCreateSchema,
-    UIElementPermissionSetSchema
+    ElementPermissionSchema
 )
 from app.models.ui_test import (
     TestUIElement, 
@@ -448,7 +448,7 @@ async def get_element_permissions(element_id: int):
 
 
 @router.post("/{element_id}/permissions", summary="设置元素权限")
-async def set_element_permissions(element_id: int, data: UIElementPermissionSetSchema):
+async def set_element_permissions(element_id: int, data: ElementPermissionSchema):
     """
     设置元素的权限角色
     
