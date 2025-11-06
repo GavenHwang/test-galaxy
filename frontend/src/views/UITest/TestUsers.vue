@@ -82,10 +82,26 @@
       <el-table-column prop="description" label="描述" show-overflow-tooltip />
       <el-table-column prop="created_by" label="创建人" width="120" />
       <el-table-column prop="created_time" label="创建时间" width="180" />
-      <el-table-column label="操作" width="180" fixed="right">
+      <el-table-column label="操作" width="100" fixed="right" align="center">
         <template #default="{ row }">
-          <el-button text type="primary" @click="handleEdit(row)">编辑</el-button>
-          <el-button text type="danger" @click="handleDelete(row)">删除</el-button>
+          <div class="action-buttons">
+            <el-tooltip content="编辑" placement="top">
+              <el-button 
+                text 
+                type="primary" 
+                @click="handleEdit(row)"
+                :icon="Edit"
+              />
+            </el-tooltip>
+            <el-tooltip content="删除" placement="top">
+              <el-button 
+                text 
+                type="danger" 
+                @click="handleDelete(row)"
+                :icon="Delete"
+              />
+            </el-tooltip>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -199,7 +215,7 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, View, Hide } from '@element-plus/icons-vue'
+import { Plus, View, Hide, Edit, Delete } from '@element-plus/icons-vue'
 import {
   getTestUsers,
   createTestUser,
@@ -553,6 +569,18 @@ onMounted(() => {
     
     span {
       flex: 1;
+    }
+  }
+  
+  .action-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    white-space: nowrap;
+    
+    .el-button {
+      padding: 5px;
     }
   }
   

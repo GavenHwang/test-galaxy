@@ -15,6 +15,7 @@ from app.models.ui_test import (
     TestUITaskContent,
     TestUIReport,
     TestUICaseSuite,
+    TestUICasesSuitesRelation,
     TestUICase,
     TaskStatus
 )
@@ -47,6 +48,26 @@ async def create_test_task(data: TestTaskCreateSchema, request: Request):
             created_by=created_by
         )
         
+        # 保存选择的套件
+        if data.suites:
+            for suite_id in data.suites:
+                await TestUITaskContent.create(
+                    test_task_id=task.id,
+                    item_type='SUITE',
+                    item_id=suite_id,
+                    sort_order=0
+                )
+        
+        # 保存选择的用例
+        if data.cases:
+            for case_id in data.cases:
+                await TestUITaskContent.create(
+                    test_task_id=task.id,
+                    item_type='CASE',
+                    item_id=case_id,
+                    sort_order=0
+                )
+        
         task_data = TestTaskResponseSchema(
             id=task.id,
             name=task.name,
@@ -59,11 +80,13 @@ async def create_test_task(data: TestTaskCreateSchema, request: Request):
             updated_time=format_datetime(task.updated_time),
             start_time=format_datetime(task.start_time),
             end_time=format_datetime(task.end_time),
-            total_cases=0,
+            total_cases=len(data.cases or []),
             executed_cases=0,
             passed_cases=0,
             failed_cases=0,
-            progress=0.0
+            progress=0.0,
+            suites=data.suites or [],
+            cases=data.cases or []
         )
         
         return ResponseSchema.success(data=task_data, msg="创建成功")
@@ -107,8 +130,11 @@ async def get_test_tasks(
             contents = await TestUITaskContent.filter(test_task_id=task.id).all()
             for content in contents:
                 if content.item_type == 'SUITE':
-                    count = await TestUICaseSuite.get(id=content.item_id).prefetch_related('cases').count()
-                    total_cases += count
+                    suite = await TestUICaseSuite.get_or_none(id=content.item_id)
+                    if suite:
+                        # 通过case_relations查询套件包含的用例数
+                        count = await TestUICasesSuitesRelation.filter(test_suite_id=content.item_id).count()
+                        total_cases += count
                 else:
                     total_cases += 1
             
@@ -157,16 +183,20 @@ async def get_test_task(task_id: int):
         if not task:
             return ResponseSchema.error(msg="测试单不存在", code=404)
         
-        # 计算用例总数
-        total_cases = 0
+        # 获取已选择的套件和用例ID
         contents = await TestUITaskContent.filter(test_task_id=task.id).all()
+        selected_suites = []
+        selected_cases = []
+        total_cases = 0
+        
         for content in contents:
             if content.item_type == 'SUITE':
-                suite = await TestUICaseSuite.get_or_none(id=content.item_id)
-                if suite:
-                    count = await suite.cases.all().count()
-                    total_cases += count
+                selected_suites.append(content.item_id)
+                # 通过case_relations查询套件包含的用例数
+                count = await TestUICasesSuitesRelation.filter(test_suite_id=content.item_id).count()
+                total_cases += count
             else:
+                selected_cases.append(content.item_id)
                 total_cases += 1
         
         task_data = TestTaskResponseSchema(
@@ -185,7 +215,9 @@ async def get_test_task(task_id: int):
             executed_cases=task.executed_cases or 0,
             passed_cases=task.passed_cases or 0,
             failed_cases=task.failed_cases or 0,
-            progress=task.progress or 0.0
+            progress=task.progress or 0.0,
+            suites=selected_suites,
+            cases=selected_cases
         )
         
         return ResponseSchema.success(data=task_data)
@@ -206,10 +238,41 @@ async def update_test_task(task_id: int, data: TestTaskUpdateSchema):
             return ResponseSchema.error(msg="测试单不存在", code=404)
         
         update_data = data.model_dump(exclude_unset=True)
+        
+        # 处理套件和用例更新
+        suites = update_data.pop('suites', None)
+        cases = update_data.pop('cases', None)
+        
+        # 更新基本信息
         for field, value in update_data.items():
             setattr(task, field, value)
         
         await task.save()
+        
+        # 如果提供了套件或用例，则更新测试内容
+        if suites is not None or cases is not None:
+            # 删除现有内容
+            await TestUITaskContent.filter(test_task_id=task_id).delete()
+            
+            # 添加套件
+            if suites:
+                for suite_id in suites:
+                    await TestUITaskContent.create(
+                        test_task_id=task_id,
+                        item_type='SUITE',
+                        item_id=suite_id,
+                        sort_order=0
+                    )
+            
+            # 添加用例
+            if cases:
+                for case_id in cases:
+                    await TestUITaskContent.create(
+                        test_task_id=task_id,
+                        item_type='CASE',
+                        item_id=case_id,
+                        sort_order=0
+                    )
         
         return ResponseSchema.success(msg="更新成功")
         

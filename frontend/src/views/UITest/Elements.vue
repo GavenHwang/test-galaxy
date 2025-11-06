@@ -102,11 +102,34 @@
       </el-table-column>
       <el-table-column prop="created_by" label="创建人" width="120" />
       <el-table-column prop="created_time" label="创建时间" width="180" />
-      <el-table-column label="操作" width="220" fixed="right">
+      <el-table-column label="操作" width="140" fixed="right" align="center">
         <template #default="{ row }">
-          <el-button text type="primary" @click="handleEdit(row)">编辑</el-button>
-          <el-button text type="primary" @click="handleSetPermissions(row)">权限</el-button>
-          <el-button text type="danger" @click="handleDelete(row)">删除</el-button>
+          <div class="action-buttons">
+            <el-tooltip content="编辑" placement="top">
+              <el-button 
+                text 
+                type="primary" 
+                @click="handleEdit(row)"
+                :icon="Edit"
+              />
+            </el-tooltip>
+            <el-tooltip content="权限" placement="top">
+              <el-button 
+                text 
+                type="primary" 
+                @click="handleSetPermissions(row)"
+                :icon="Lock"
+              />
+            </el-tooltip>
+            <el-tooltip content="删除" placement="top">
+              <el-button 
+                text 
+                type="danger" 
+                @click="handleDelete(row)"
+                :icon="Delete"
+              />
+            </el-tooltip>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -283,7 +306,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, Lock } from '@element-plus/icons-vue'
 import {
   getElements,
   createElement,
@@ -652,6 +675,18 @@ onMounted(() => {
     margin-top: 20px;
     display: flex;
     justify-content: flex-end;
+  }
+  
+  .action-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    white-space: nowrap;
+    
+    .el-button {
+      padding: 5px;
+    }
   }
   
   .form-tip {

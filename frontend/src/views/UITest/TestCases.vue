@@ -86,8 +86,8 @@
       style="width: 100%"
     >
       <el-table-column type="selection" width="55" />
-      <el-table-column prop="name" label="用例名称" width="250" show-overflow-tooltip />
-      <el-table-column prop="priority" label="优先级" width="80" align="center">
+      <el-table-column prop="name" label="用例名称" min-width="300" show-overflow-tooltip />
+      <el-table-column prop="priority" label="优先级" width="100" align="center">
         <template #default="{ row }">
           <el-tag 
             :type="row.priority === '高' ? 'danger' : row.priority === '中' ? 'warning' : 'info'"
@@ -97,7 +97,7 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="status" label="状态" width="80" align="center">
+      <el-table-column prop="status" label="状态" width="100" align="center">
         <template #default="{ row }">
           <el-tag 
             :type="getStatusType(row.status)"
@@ -107,8 +107,8 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="module" label="所属模块" width="120" />
-      <el-table-column label="标签" width="200">
+      <el-table-column prop="module" label="所属模块" width="150" />
+      <el-table-column label="标签" width="250">
         <template #default="{ row }">
           <el-tag 
             v-for="tag in row.tags" 
@@ -120,7 +120,7 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="执行统计" width="120" align="center">
+      <el-table-column label="执行统计" width="150" align="center">
         <template #default="{ row }">
           <div>
             <div>共{{ row.execution_count }}次</div>
@@ -132,14 +132,44 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="created_by" label="创建人" width="100" />
-      <el-table-column prop="created_time" label="创建时间" width="180" />
-      <el-table-column label="操作" width="280" fixed="right">
+      <el-table-column prop="created_by" label="创建人" width="120" />
+      <el-table-column prop="created_time" label="创建时间" width="200" />
+      <el-table-column label="操作" width="160" fixed="right" align="center">
         <template #default="{ row }">
-          <el-button text type="primary" @click="handleView(row)">查看</el-button>
-          <el-button text type="primary" @click="handleEdit(row)">编辑</el-button>
-          <el-button text type="primary" @click="handleCopy(row)">复制</el-button>
-          <el-button text type="danger" @click="handleDelete(row)">删除</el-button>
+          <div class="action-buttons">
+            <el-tooltip content="查看" placement="top">
+              <el-button 
+                text 
+                type="primary" 
+                @click="handleView(row)"
+                :icon="View"
+              />
+            </el-tooltip>
+            <el-tooltip content="编辑" placement="top">
+              <el-button 
+                text 
+                type="primary" 
+                @click="handleEdit(row)"
+                :icon="Edit"
+              />
+            </el-tooltip>
+            <el-tooltip content="复制" placement="top">
+              <el-button 
+                text 
+                type="primary" 
+                @click="handleCopy(row)"
+                :icon="CopyDocument"
+              />
+            </el-tooltip>
+            <el-tooltip content="删除" placement="top">
+              <el-button 
+                text 
+                type="danger" 
+                @click="handleDelete(row)"
+                :icon="Delete"
+              />
+            </el-tooltip>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -162,7 +192,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, ArrowDown } from '@element-plus/icons-vue'
+import { Plus, ArrowDown, View, Edit, CopyDocument, Delete } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import {
   getTestCases,
@@ -439,6 +469,18 @@ onMounted(() => {
     margin-top: 20px;
     display: flex;
     justify-content: flex-end;
+  }
+  
+  .action-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    white-space: nowrap;
+    
+    .el-button {
+      padding: 5px;
+    }
   }
 }
 </style>

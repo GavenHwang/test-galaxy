@@ -322,8 +322,9 @@ class TestTaskCreateSchema(BaseModel):
     name: str = Field(..., min_length=1, max_length=200, description="测试单名称")
     description: Optional[str] = Field(None, max_length=2000, description="描述")
     environment: str = Field(..., min_length=1, max_length=100, description="测试环境")
-    execute_config: ExecuteConfigSchema = Field(..., description="执行配置")
-    contents: Optional[List[TaskContentSchema]] = Field(None, description="测试内容")
+    execute_config: dict = Field(..., description="执行配置")
+    suites: Optional[List[int]] = Field(default=[], description="套件ID列表")
+    cases: Optional[List[int]] = Field(default=[], description="用例ID列表")
 
 
 class TestTaskUpdateSchema(BaseModel):
@@ -331,7 +332,9 @@ class TestTaskUpdateSchema(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=200, description="测试单名称")
     description: Optional[str] = Field(None, max_length=2000, description="描述")
     environment: Optional[str] = Field(None, min_length=1, max_length=100, description="测试环境")
-    execute_config: Optional[ExecuteConfigSchema] = Field(None, description="执行配置")
+    execute_config: Optional[dict] = Field(None, description="执行配置")
+    suites: Optional[List[int]] = Field(None, description="套件ID列表")
+    cases: Optional[List[int]] = Field(None, description="用例ID列表")
 
 
 class TestTaskResponseSchema(BaseResponseSchema):
@@ -352,6 +355,8 @@ class TestTaskResponseSchema(BaseResponseSchema):
     failed_cases: int = 0
     progress: Optional[float] = 0.0
     estimated_time: Optional[int] = None
+    suites: Optional[List[int]] = []  # 已选择的套件ID列表
+    cases: Optional[List[int]] = []   # 已选择的用例ID列表
 
 
 class TestTaskListParams(PaginationParams):

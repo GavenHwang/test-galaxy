@@ -26,9 +26,9 @@
       v-loading="loading"
       style="width: 100%"
     >
-      <el-table-column prop="id" label="报告ID" width="80" />
-      <el-table-column prop="test_task_id" label="测试单ID" width="100" />
-      <el-table-column label="执行结果" width="300">
+      <el-table-column prop="id" label="报告ID" width="100" />
+      <el-table-column prop="test_task_id" label="测试单ID" width="120" />
+      <el-table-column label="执行结果" min-width="450">
         <template #default="{ row }">
           <div style="display: flex; align-items: center; gap: 10px">
             <el-tag type="success" size="small">通过 {{ row.passed_cases }}</el-tag>
@@ -38,7 +38,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="通过率" width="150" align="center">
+      <el-table-column label="通过率" width="200" align="center">
         <template #default="{ row }">
           <el-progress 
             :percentage="Math.round(row.pass_rate * 100)" 
@@ -46,17 +46,26 @@
           />
         </template>
       </el-table-column>
-      <el-table-column prop="duration" label="执行时长" width="120" align="center">
+      <el-table-column prop="duration" label="执行时长" width="150" align="center">
         <template #default="{ row }">
           {{ formatDuration(row.duration) }}
         </template>
       </el-table-column>
-      <el-table-column prop="start_time" label="开始时间" width="180" />
-      <el-table-column prop="end_time" label="结束时间" width="180" />
-      <el-table-column prop="created_time" label="创建时间" width="180" />
-      <el-table-column label="操作" width="150" fixed="right">
+      <el-table-column prop="start_time" label="开始时间" width="200" />
+      <el-table-column prop="end_time" label="结束时间" width="200" />
+      <el-table-column prop="created_time" label="创建时间" width="200" />
+      <el-table-column label="操作" width="60" fixed="right" align="center">
         <template #default="{ row }">
-          <el-button text type="primary" @click="handleView(row)">查看详情</el-button>
+          <div class="action-buttons">
+            <el-tooltip content="查看详情" placement="top">
+              <el-button 
+                text 
+                type="primary" 
+                @click="handleView(row)"
+                :icon="View"
+              />
+            </el-tooltip>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -80,6 +89,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
+import { View } from '@element-plus/icons-vue'
 import { getTestReports } from '@/api/uitest'
 
 const router = useRouter()
@@ -174,12 +184,16 @@ onMounted(() => {
 <style scoped lang="less">
 .test-reports-container {
   padding: 20px;
+  height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
   
   .search-area {
     margin-bottom: 20px;
     padding: 20px;
     background: #fff;
     border-radius: 4px;
+    flex-shrink: 0;
     
     .search-form {
       .el-form-item {
@@ -188,10 +202,28 @@ onMounted(() => {
     }
   }
   
+  :deep(.el-table) {
+    flex: 1;
+    overflow: auto;
+  }
+  
+  .action-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    white-space: nowrap;
+    
+    .el-button {
+      padding: 5px;
+    }
+  }
+  
   .pagination {
     margin-top: 20px;
     display: flex;
     justify-content: flex-end;
+    flex-shrink: 0;
   }
 }
 </style>

@@ -3,6 +3,7 @@ UI测试报告管理API
 """
 from fastapi import APIRouter, Query
 from typing import Optional
+from datetime import datetime
 from app.schemas.response import ResponseSchema
 from app.models.ui_test import (
     TestUIReport,
@@ -11,6 +12,13 @@ from app.models.ui_test import (
 )
 
 router = APIRouter()
+
+
+def format_datetime(dt: datetime) -> str:
+    """格式化时间为 YYYY-MM-DD HH:MM:SS 格式"""
+    if dt is None:
+        return None
+    return dt.strftime('%Y-%m-%d %H:%M:%S')
 
 
 @router.get("", summary="获取测试报告列表")
@@ -36,16 +44,16 @@ async def get_test_reports(
             {
                 "id": report.id,
                 "test_task_id": report.test_task_id,
+                "execution_time": format_datetime(report.execution_time),
                 "total_cases": report.total_cases,
                 "passed_cases": report.passed_cases,
                 "failed_cases": report.failed_cases,
                 "skipped_cases": report.skipped_cases,
-                "pass_rate": report.pass_rate,
-                "start_time": report.start_time,
-                "end_time": report.end_time,
-                "duration": report.duration,
+                "pass_rate": float(report.pass_rate),
+                "execution_duration": report.execution_duration,
                 "report_data": report.report_data,
-                "created_time": report.created_time
+                "created_time": format_datetime(report.created_time),
+                "updated_time": format_datetime(report.updated_time)
             }
             for report in reports
         ]
@@ -92,8 +100,8 @@ async def get_test_report(report_id: int):
                     "step_number": step.step_number,
                     "action": step.action,
                     "status": step.status,
-                    "start_time": step.start_time,
-                    "end_time": step.end_time,
+                    "start_time": format_datetime(step.start_time),
+                    "end_time": format_datetime(step.end_time),
                     "duration": step.duration,
                     "error_message": step.error_message,
                     "screenshot_path": step.screenshot_path
@@ -104,8 +112,8 @@ async def get_test_report(report_id: int):
             case_list.append({
                 "test_case_id": record.test_case_id,
                 "status": record.status,
-                "start_time": record.start_time,
-                "end_time": record.end_time,
+                "start_time": format_datetime(record.start_time),
+                "end_time": format_datetime(record.end_time),
                 "duration": record.duration,
                 "error_message": record.error_message,
                 "screenshot_path": record.screenshot_path,
@@ -115,16 +123,16 @@ async def get_test_report(report_id: int):
         report_data = {
             "id": report.id,
             "test_task_id": report.test_task_id,
+            "execution_time": format_datetime(report.execution_time),
             "total_cases": report.total_cases,
             "passed_cases": report.passed_cases,
             "failed_cases": report.failed_cases,
             "skipped_cases": report.skipped_cases,
-            "pass_rate": report.pass_rate,
-            "start_time": report.start_time,
-            "end_time": report.end_time,
-            "duration": report.duration,
+            "pass_rate": float(report.pass_rate),
+            "execution_duration": report.execution_duration,
             "report_data": report.report_data,
-            "created_time": report.created_time,
+            "created_time": format_datetime(report.created_time),
+            "updated_time": format_datetime(report.updated_time),
             "cases": case_list
         }
         
@@ -150,10 +158,9 @@ async def get_report_summary(report_id: int):
             "passed_cases": report.passed_cases,
             "failed_cases": report.failed_cases,
             "skipped_cases": report.skipped_cases,
-            "pass_rate": report.pass_rate,
-            "duration": report.duration,
-            "start_time": report.start_time,
-            "end_time": report.end_time
+            "pass_rate": float(report.pass_rate),
+            "execution_duration": report.execution_duration,
+            "execution_time": format_datetime(report.execution_time)
         }
         
         return ResponseSchema.success(data=summary)
@@ -180,12 +187,13 @@ async def compare_reports(report_ids: str = Query(..., description="报告ID列�
                 {
                     "id": report.id,
                     "test_task_id": report.test_task_id,
+                    "execution_time": format_datetime(report.execution_time),
                     "total_cases": report.total_cases,
                     "passed_cases": report.passed_cases,
                     "failed_cases": report.failed_cases,
-                    "pass_rate": report.pass_rate,
-                    "duration": report.duration,
-                    "created_time": report.created_time
+                    "pass_rate": float(report.pass_rate),
+                    "execution_duration": report.execution_duration,
+                    "created_time": format_datetime(report.created_time)
                 }
                 for report in reports
             ]

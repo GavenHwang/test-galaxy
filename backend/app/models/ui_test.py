@@ -320,7 +320,7 @@ class TestUITaskContent(BaseModel):
         abstract = False
 
 
-class TestUIReport(BaseModel):
+class TestUIReport(BaseModel, TimestampMixin):
     """测试报告表"""
     test_task = fields.ForeignKeyField(
         "models.TestUITask",
@@ -347,7 +347,7 @@ class TestUIReport(BaseModel):
         abstract = False
 
 
-class TestUICaseExecutionRecord(BaseModel):
+class TestUICaseExecutionRecord(BaseModel, TimestampMixin):
     """用例执行记录表"""
     test_case = fields.ForeignKeyField(
         "models.TestUICase",
@@ -379,7 +379,7 @@ class TestUICaseExecutionRecord(BaseModel):
         abstract = False
 
 
-class TestUICaseStepExecutionRecord(BaseModel):
+class TestUICaseStepExecutionRecord(BaseModel, TimestampMixin):
     """用例步骤执行记录表"""
     case_execution_record = fields.ForeignKeyField(
         "models.TestUICaseExecutionRecord",

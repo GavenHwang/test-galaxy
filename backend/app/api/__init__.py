@@ -20,7 +20,7 @@ api_router.include_router(ui_element_router, prefix="/ui-test/elements", tags=["
 api_router.include_router(ui_test_case_router, prefix="/ui-test/test-cases", tags=["UI测试-测试用例"])
 api_router.include_router(ui_test_suite_router, prefix="/ui-test/test-suites", tags=["UI测试-测试套件"])
 api_router.include_router(ui_test_task_router, prefix="/ui-test/test-tasks", tags=["UI测试-测试单"])
-api_router.include_router(ui_test_report_router, prefix="/ui-test/reports", tags=["UI测试-测试报告"])
+api_router.include_router(ui_test_report_router, prefix="/ui-test/test-reports", tags=["UI测试-测试报告"])
 
 __all__ = ["api_router"]
 
