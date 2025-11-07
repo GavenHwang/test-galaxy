@@ -1,0 +1,33 @@
+{
+  "task_info": {
+    "task_id": 4,
+    "task_name": "登录",
+    "environment": "itos2",
+    "created_by": "system",
+    "created_time": "2025-11-06 11:19:46"
+  },
+  "execute_config": {
+    "timeout": 300,
+    "parallel": false,
+    "parallel_count": 3,
+    "max_retry_times": 3,
+    "stop_on_failure": false,
+    "retry_on_failure": false,
+    "browser": "chromium",
+    "headless": true,
+    "continue_on_failure": true,
+    "retry_count": 2,
+    "auto_screenshot": true,
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    }
+  },
+  "test_users": {},
+  "environment_variables": {
+    "host": "http://localhost:5173",
+    "api_host": "http://localhost:9998",
+    "admin_username": "admin",
+    "admin_password": "111111aA"
+  }
+}

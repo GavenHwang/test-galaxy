@@ -64,6 +64,9 @@
       v-loading="loading"
       style="width: 100%"
     >
+      <el-table-column prop="product" label="产品" width="150" />
+      <el-table-column prop="role_name" label="角色" width="150" />
+      <el-table-column prop="role_code" label="角色Code" width="150" />
       <el-table-column prop="username" label="用户名" width="150" />
       <el-table-column label="密码" width="180">
         <template #default="{ row }">
@@ -77,8 +80,6 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="product" label="产品" width="150" />
-      <el-table-column prop="role_name" label="角色" width="150" />
       <el-table-column prop="description" label="描述" show-overflow-tooltip />
       <el-table-column prop="created_by" label="创建人" width="120" />
       <el-table-column prop="created_time" label="创建时间" width="180" />
@@ -109,8 +110,8 @@
     <!-- 分页组件 -->
     <div class="pagination">
       <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
+        :current-page="currentPage"
+        :page-size="pageSize"
         :page-sizes="[10, 20, 50, 100]"
         :total="total"
         layout="total, sizes, prev, pager, next, jumper"
@@ -162,9 +163,10 @@
         <el-form-item label="产品" prop="product">
           <el-select
             v-model="formData.product"
-            placeholder="请选择或输入产品"
+            placeholder="请选择已有产品或直接输入新产品名称"
             filterable
             allow-create
+            default-first-option
             style="width: 100%"
           >
             <el-option
@@ -178,9 +180,10 @@
         <el-form-item label="角色" prop="role_name">
           <el-select
             v-model="formData.role_name"
-            placeholder="请选择或输入角色"
+            placeholder="请选择已有角色或直接输入新角色名称"
             filterable
             allow-create
+            default-first-option
             style="width: 100%"
           >
             <el-option
@@ -190,6 +193,14 @@
               :value="item"
             />
           </el-select>
+        </el-form-item>
+        <el-form-item label="角色Code" prop="role_code">
+          <el-input 
+            v-model="formData.role_code" 
+            placeholder="请输入角色编码，如：ADMIN"
+            maxlength="50"
+            show-word-limit
+          />
         </el-form-item>
         <el-form-item label="描述" prop="description">
           <el-input
@@ -262,6 +273,7 @@ const formData = reactive({
   password: '',
   product: '',
   role_name: '',
+  role_code: '',
   description: ''
 })
 
@@ -295,6 +307,11 @@ const formRules = {
   role_name: [
     { required: true, message: '请选择或输入角色', trigger: 'blur' },
     { min: 1, max: 100, message: '长度在1-100个字符', trigger: 'blur' }
+  ],
+  role_code: [
+    { required: true, message: '请输入角色编码', trigger: 'blur' },
+    { min: 1, max: 50, message: '长度在1-50个字符', trigger: 'blur' },
+    { pattern: /^[A-Za-z0-9]+$/, message: '角色编码只能包含大小写英文字符和数字', trigger: 'blur' }
   ],
   description: [
     { max: 500, message: '描述最多500个字符', trigger: 'blur' }
@@ -422,6 +439,7 @@ const handleEdit = (row) => {
     password: '', // 编辑时密码留空
     product: row.product,
     role_name: row.role_name,
+    role_code: row.role_code || '',
     description: row.description || ''
   })
   
@@ -521,6 +539,7 @@ const resetForm = () => {
   formData.password = ''
   formData.product = ''
   formData.role_name = ''
+  formData.role_code = ''
   formData.description = ''
   formPasswordVisible.value = false
   
@@ -569,18 +588,6 @@ onMounted(() => {
     
     span {
       flex: 1;
-    }
-  }
-  
-  .action-buttons {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 2px;
-    white-space: nowrap;
-    
-    .el-button {
-      padding: 5px;
     }
   }
   

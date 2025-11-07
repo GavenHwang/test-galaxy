@@ -478,11 +478,44 @@ export const cancelTestTask = (taskId) => {
   })
 }
 
+// 暂停执行
+export const pauseTestTask = (taskId) => {
+  return request({
+    url: `/api/ui-test/test-tasks/${taskId}/pause`,
+    method: 'post'
+  })
+}
+
+// 继续执行
+export const resumeTestTask = (taskId) => {
+  return request({
+    url: `/api/ui-test/test-tasks/${taskId}/resume`,
+    method: 'post'
+  })
+}
+
+// 重新执行
+export const restartTestTask = (taskId) => {
+  return request({
+    url: `/api/ui-test/test-tasks/${taskId}/restart`,
+    method: 'post'
+  })
+}
+
 // 获取执行进度
 export const getTaskProgress = (taskId) => {
   return request({
     url: `/api/ui-test/test-tasks/${taskId}/progress`,
     method: 'get'
+  })
+}
+
+// 获取执行日志（支持增量读取）
+export const getTestTaskLog = (taskId, offset = 0) => {
+  return request({
+    url: `/api/ui-test/test-tasks/${taskId}/log`,
+    method: 'get',
+    params: { offset }
   })
 }
 
@@ -563,5 +596,13 @@ export const compareReports = (reportIds) => {
     url: '/api/ui-test/test-reports/compare',
     method: 'get',
     params: { report_ids: reportIds.join(',') }
+  })
+}
+
+// 删除测试报告
+export const deleteTestReport = (reportId) => {
+  return request({
+    url: `/api/ui-test/test-reports/${reportId}`,
+    method: 'delete'
   })
 }

@@ -46,7 +46,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             # 将用户信息存入 request.state，供后续视图函数使用
             request.state.current_user = {
                 "id": user.id, 
-                "name": user.username, 
+                "username": user.username,  # 修改为 username，与 API 中的获取方式一致
                 "role": user.role.name if user.role else None
             }
 

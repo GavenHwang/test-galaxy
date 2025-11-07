@@ -61,7 +61,10 @@ function request(options) {
     options.method = options.method || "get"
     // 关于get请求参数的调整
     if (options.method.toLowerCase() === 'get') {
-        options.params = options.data
+        // 只有当 data 存在时才赋值，避免覆盖原有的 params
+        if (options.data) {
+            options.params = options.data
+        }
     }
     return service(options)
 }

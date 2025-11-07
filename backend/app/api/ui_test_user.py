@@ -1,6 +1,7 @@
 """
 UI测试用户管理API
 """
+from tortoise.queryset import QuerySet
 from fastapi import APIRouter, Query, Request
 from typing import List, Optional
 from datetime import datetime
@@ -11,7 +12,7 @@ from app.schemas.ui_test import (
     TestUserResponseSchema,
     TestUserListParams
 )
-from app.models.ui_test import TestCommonUser, TestUIElementPermission, TestUICasePermission, TestProductRole
+from app.models.ui_test import TestCommonUser, TestUIElementPermission, TestUICasePermission
 from tortoise.expressions import Q
 
 router = APIRouter()
@@ -57,6 +58,7 @@ async def create_test_user(data: TestUserCreateSchema, request: Request):
             password=data.password,
             product=data.product,
             role_name=data.role_name,
+            role_code=data.role_code,
             description=data.description,
             created_by=created_by
         )
@@ -68,6 +70,7 @@ async def create_test_user(data: TestUserCreateSchema, request: Request):
             password="******",
             product=user.product,
             role_name=user.role_name,
+            role_code=user.role_code,
             description=user.description,
             created_by=user.created_by,
             created_time=format_datetime(user.created_time),
@@ -115,20 +118,22 @@ async def get_test_users(
         users = await query.offset(offset).limit(page_size).order_by('-created_time')
         
         # 构造响应数据（密码脱敏）
-        user_list = [
-            TestUserResponseSchema(
-                id=user.id,
-                username=user.username,
-                password="******",
-                product=user.product,
-                role_name=user.role_name,
-                description=user.description,
-                created_by=user.created_by,
-                created_time=format_datetime(user.created_time),
-                updated_time=format_datetime(user.updated_time)
+        user_list = []
+        for user in users:
+            user_list.append(
+                TestUserResponseSchema(
+                    id=user.id,
+                    username=user.username,
+                    password="******",
+                    product=user.product,
+                    role_name=user.role_name,
+                    role_code=user.role_code,
+                    description=user.description,
+                    created_by=user.created_by,
+                    created_time=format_datetime(user.created_time),
+                    updated_time=format_datetime(user.updated_time)
+                )
             )
-            for user in users
-        ]
         
         # 构造分页响应
         result = {
@@ -163,6 +168,7 @@ async def get_test_user(user_id: int):
             password="******",
             product=user.product,
             role_name=user.role_name,
+            role_code=user.role_code,
             description=user.description,
             created_by=user.created_by,
             created_time=format_datetime(user.created_time),
@@ -224,6 +230,7 @@ async def update_test_user(user_id: int, data: TestUserUpdateSchema):
             password="******",
             product=user.product,
             role_name=user.role_name,
+            role_code=user.role_code,
             description=user.description,
             created_by=user.created_by,
             created_time=format_datetime(user.created_time),
@@ -285,11 +292,11 @@ async def delete_test_user(user_id: int, force: bool = Query(False, description=
 @router.get("/products/list", summary="获取产品列表")
 async def get_products():
     """
-    从产品角色字典表获取所有不重复的产品列表，用于下拉选择器
+    从测试用户表获取所有不重复的产品列表，用于下拉选择器
     """
     try:
-        # 从字典表查询所有不重复的产品
-        products = await TestProductRole.all().distinct().values_list('product', flat=True)
+        # 从测试用户表查询所有不重复的产品
+        products = await TestCommonUser.all().distinct().values_list('product', flat=True)
         
         # 过滤空值并排序
         products = sorted([p for p in products if p])
@@ -303,14 +310,14 @@ async def get_products():
 @router.get("/roles/list", summary="获取角色列表")
 async def get_roles(product: Optional[str] = Query(None, description="产品名称，用于过滤角色")):
     """
-    从产品角色字典表获取角色列表
+    从测试用户表获取角色列表
     
     参数：
     - product: 可选，如果提供则只返回该产品下的角色
     """
     try:
         # 构建查询条件
-        query = TestProductRole.all()
+        query = TestCommonUser.all()
         
         if product:
             query = query.filter(product=product)

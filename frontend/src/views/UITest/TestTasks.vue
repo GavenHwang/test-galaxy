@@ -65,20 +65,30 @@
       <el-table-column prop="environment" label="测试环境" width="150" />
       <el-table-column prop="status" label="状态" width="120" align="center">
         <template #default="{ row }">
-          <el-tag :type="getStatusType(row.status)" size="small">
+          <el-tag 
+            :type="getStatusType(row.status)" 
+            :class="getStatusClass(row.status)"
+            size="small"
+          >
             {{ getStatusText(row.status) }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="执行进度" width="250" align="center">
         <template #default="{ row }">
-          <div v-if="row.total_cases > 0">
+          <!-- 待执行状态不显示进度 -->
+          <span v-if="row.status === '待执行'" style="color: #909399">-</span>
+          <!-- 其他状态显示进度 -->
+          <div v-else-if="row.total_cases > 0">
+            <!-- 进度条单独一行 -->
             <el-progress 
-              :percentage="Math.round(row.progress * 100)" 
+              :percentage="Math.round(row.progress)" 
               :status="getProgressStatus(row.status)"
+              :show-text="false"
             />
-            <div style="font-size: 12px; color: #909399; margin-top: 5px">
-              {{ row.executed_cases }}/{{ row.total_cases }}
+            <!-- 百分比和执行条数在第二行 -->
+            <div style="font-size: 12px; color: #606266; margin-top: 8px; font-weight: 500">
+              {{ Math.round(row.progress) }}% ({{ row.executed_cases }}/{{ row.total_cases }})
             </div>
           </div>
           <span v-else style="color: #909399">-</span>
@@ -94,7 +104,7 @@
       </el-table-column>
       <el-table-column prop="created_by" label="创建人" width="120" />
       <el-table-column prop="created_time" label="创建时间" width="200" />
-      <el-table-column label="操作" width="180" fixed="right" align="center">
+      <el-table-column label="操作" width="280" fixed="right" align="center">
         <template #default="{ row }">
           <div class="action-buttons">
             <el-tooltip content="查看" placement="top">
@@ -105,22 +115,62 @@
                 :icon="View"
               />
             </el-tooltip>
-            <el-tooltip content="执行" placement="top">
+            <!-- 执行中：显示暂停按钮 -->
+            <el-tooltip content="暂停" placement="top" v-if="row.status === '执行中'">
+              <el-button 
+                text 
+                type="warning" 
+                @click="handlePause(row)"
+                :icon="VideoPause"
+              />
+            </el-tooltip>
+            <!-- 已暂停：显示继续按钮 -->
+            <el-tooltip content="继续" placement="top" v-else-if="row.status === '已暂停'">
+              <el-button 
+                text 
+                type="success" 
+                @click="handleResume(row)"
+                :icon="VideoPlay"
+              />
+            </el-tooltip>
+            <!-- 其他状态：显示执行按钮 -->
+            <el-tooltip content="执行" placement="top" v-else>
               <el-button 
                 text 
                 type="success" 
                 @click="handleExecute(row)"
-                :disabled="row.status === 'RUNNING'"
+                :disabled="row.status === '执行中'"
                 :icon="VideoPlay"
               />
             </el-tooltip>
-            <el-tooltip content="取消" placement="top">
+            <!-- 重新执行按钮 -->
+            <el-tooltip content="重新执行" placement="top">
               <el-button 
                 text 
                 type="warning" 
+                @click="handleRestart(row)"
+                :disabled="row.status === '执行中'"
+                :icon="RefreshRight"
+              />
+            </el-tooltip>
+            <!-- 取消执行按钮 -->
+            <el-tooltip content="取消" placement="top">
+              <el-button 
+                text 
+                type="danger" 
                 @click="handleCancel(row)"
-                :disabled="row.status !== 'RUNNING'"
-                :icon="VideoPause"
+                :disabled="row.status !== '执行中' && row.status !== '已暂停'"
+                :icon="CircleClose"
+              />
+            </el-tooltip>
+            <!-- 查看日志按钮 -->
+            <el-tooltip content="查看日志" placement="top">
+              <el-button 
+                text 
+                type="info" 
+                @click="handleViewLog(row)"
+                :disabled="row.status === '待执行'"
+                :icon="Document"
               />
             </el-tooltip>
             <el-tooltip content="编辑" placement="top">
@@ -333,13 +383,40 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 查看执行日志对话框 -->
+    <el-dialog
+      v-model="logDialogVisible"
+      title="执行日志"
+      width="1000px"
+      @close="stopLogPolling"
+    >
+      <div 
+        ref="logContainer"
+        class="log-container"
+      >
+        <pre v-if="executionLog" class="log-content">{{ executionLog }}</pre>
+        <div v-else class="log-empty">
+          <el-empty description="暂无日志" />
+        </div>
+      </div>
+      
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="logDialogVisible = false">关闭</el-button>
+          <el-button type="primary" @click="loadLog" :disabled="isLogComplete">
+            刷新
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, View, Edit, Delete, VideoPlay, VideoPause } from '@element-plus/icons-vue'
+import { Plus, View, Edit, Delete, VideoPlay, VideoPause, RefreshRight, CircleClose, Document, Loading, CircleCheck } from '@element-plus/icons-vue'
 import { 
   getTestTasks,
   createTestTask,
@@ -348,6 +425,10 @@ import {
   getTestTaskDetail,
   executeTestTask,
   cancelTestTask,
+  pauseTestTask,
+  resumeTestTask,
+  restartTestTask,
+  getTestTaskLog,
   getTestSuites,
   getTestCases
 } from '@/api/uitest'
@@ -379,6 +460,15 @@ const contentTab = ref('suite')
 // 查看详情对话框
 const viewDialogVisible = ref(false)
 const currentTask = ref(null)
+
+// 查看日志对话框
+const logDialogVisible = ref(false)
+const executionLog = ref('')
+const logOffset = ref(0)
+const logTimer = ref(null)
+const currentLogTaskId = ref(null)
+const isLogComplete = ref(false)
+const logContainer = ref(null)
 
 // 表单数据
 const formData = reactive({
@@ -414,11 +504,12 @@ const formRules = {
 // 获取状态类型
 const getStatusType = (status) => {
   const typeMap = {
-    'PENDING': 'info',
-    'RUNNING': 'warning',
-    'COMPLETED': 'success',
-    'FAILED': 'danger',
-    'CANCELLED': 'info'
+    'PENDING': '',        // 待执行 - 灰色
+    'RUNNING': '',        // 执行中 - 蓝色
+    'PAUSED': 'warning',  // 已暂停 - 橙色
+    'COMPLETED': 'success', // 已完成 - 绿色
+    'FAILED': 'danger',   // 已失败 - 红色
+    'CANCELLED': 'info'   // 已取消 - 灰蓝色
   }
   return typeMap[status] || 'info'
 }
@@ -428,11 +519,25 @@ const getStatusText = (status) => {
   const textMap = {
     'PENDING': '待执行',
     'RUNNING': '执行中',
+    'PAUSED': '已暂停',
     'COMPLETED': '已完成',
     'FAILED': '已失败',
     'CANCELLED': '已取消'
   }
   return textMap[status] || status
+}
+
+// 获取状态样式类
+const getStatusClass = (status) => {
+  const classMap = {
+    'PENDING': 'status-pending',
+    'RUNNING': 'status-running',
+    'PAUSED': 'status-paused',
+    'COMPLETED': 'status-completed',
+    'FAILED': 'status-failed',
+    'CANCELLED': 'status-cancelled'
+  }
+  return classMap[status] || ''
 }
 
 // 获取进度状态
@@ -591,6 +696,52 @@ const handleExecute = (row) => {
   }).catch(() => {})
 }
 
+// 暂停执行
+const handlePause = async (row) => {
+  try {
+    await pauseTestTask(row.id)
+    ElMessage.success('已暂停执行')
+    loadData()
+  } catch (error) {
+    console.error('暂停失败:', error)
+    ElMessage.error(error.response?.data?.msg || '暂停失败')
+  }
+}
+
+// 继续执行
+const handleResume = async (row) => {
+  try {
+    await resumeTestTask(row.id)
+    ElMessage.success('已继续执行')
+    loadData()
+  } catch (error) {
+    console.error('继续失败:', error)
+    ElMessage.error(error.response?.data?.msg || '继续失败')
+  }
+}
+
+// 重新执行
+const handleRestart = (row) => {
+  ElMessageBox.confirm(
+    '重新执行将清理已有执行结果，从头开始执行。是否继续？',
+    '提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(async () => {
+    try {
+      await restartTestTask(row.id)
+      ElMessage.success('测试单已开始重新执行')
+      loadData()
+    } catch (error) {
+      console.error('重新执行失败:', error)
+      ElMessage.error(error.response?.data?.msg || '重新执行失败')
+    }
+  }).catch(() => {})
+}
+
 // 取消执行
 const handleCancel = (row) => {
   ElMessageBox.confirm(
@@ -632,6 +783,89 @@ const handleDelete = (row) => {
     }
   }).catch(() => {})
 }
+
+// 查看执行日志
+const handleViewLog = async (row) => {
+  currentLogTaskId.value = row.id
+  logDialogVisible.value = true
+  executionLog.value = ''
+  logOffset.value = 0
+  isLogComplete.value = false
+  
+  // 立即加载一次日志
+  await loadLog()
+  
+  // 如果任务正在执行中，启动自动刷新
+  if (row.status === 'RUNNING') {
+    startLogPolling()
+  }
+}
+
+// 加载日志内容
+const loadLog = async () => {
+  if (!currentLogTaskId.value || isLogComplete.value) return
+  
+  try {
+    const data = await getTestTaskLog(currentLogTaskId.value, logOffset.value)
+    
+    // 追加新日志
+    if (data.log_content) {
+      executionLog.value += data.log_content
+      logOffset.value = data.next_offset
+      
+      // 自动滚动到底部
+      await nextTick()
+      if (logContainer.value) {
+        logContainer.value.scrollTop = logContainer.value.scrollHeight
+      }
+    }
+    
+    // 检查是否完成
+    if (data.is_complete) {
+      isLogComplete.value = true
+      stopLogPolling()
+    }
+  } catch (error) {
+    // request.js 拦截器已经弹出了错误提示
+    // 这里只需要停止轮询，并在404时关闭对话框
+    stopLogPolling()
+    
+    // 如果是日志文件不存在的错误，延迟关闭对话框
+    if (error && (error.includes('日志文件不存在') || error.includes('暂无执行日志'))) {
+      setTimeout(() => {
+        logDialogVisible.value = false
+      }, 2000)
+    }
+  }
+}
+
+// 启动日志轮询
+const startLogPolling = () => {
+  stopLogPolling()
+  logTimer.value = setInterval(() => {
+    loadLog()
+  }, 2000) // 每2秒刷新一次
+}
+
+// 停止日志轮询
+const stopLogPolling = () => {
+  if (logTimer.value) {
+    clearInterval(logTimer.value)
+    logTimer.value = null
+  }
+}
+
+// 关闭日志对话框时停止轮询
+watch(logDialogVisible, (newVal) => {
+  if (!newVal) {
+    stopLogPolling()
+  }
+})
+
+// 组件卸载时停止轮询
+onUnmounted(() => {
+  stopLogPolling()
+})
 
 // 步骤导航
 const handleNextStep = async () => {
@@ -760,6 +994,71 @@ onMounted(() => {
     display: flex;
     justify-content: flex-end;
     flex-shrink: 0;
+  }
+  
+  // 状态标签自定义颜色
+  :deep(.el-tag) {
+    &.status-pending {
+      background-color: #f4f4f5;
+      color: #909399;
+      border-color: #e9e9eb;
+    }
+    
+    &.status-running {
+      background-color: #e1f3fa;
+      color: #409eff;
+      border-color: #b3d8ff;
+    }
+    
+    &.status-paused {
+      background-color: #fdf6ec;
+      color: #e6a23c;
+      border-color: #f5dab1;
+    }
+    
+    &.status-completed {
+      background-color: #f0f9ff;
+      color: #67c23a;
+      border-color: #c2e7b0;
+    }
+    
+    &.status-failed {
+      background-color: #fef0f0;
+      color: #f56c6c;
+      border-color: #fbc4c4;
+    }
+    
+    &.status-cancelled {
+      background-color: #f4f4f5;
+      color: #909399;
+      border-color: #d3d4d6;
+    }
+  }
+  
+  // 日志容器样式
+  .log-container {
+    height: 500px;
+    overflow-y: auto;
+    background-color: #1e1e1e;
+    border-radius: 4px;
+    padding: 16px;
+    
+    .log-content {
+      margin: 0;
+      color: #d4d4d4;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    
+    .log-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
   }
 }
 </style>

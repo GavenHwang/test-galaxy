@@ -4,6 +4,7 @@ UI测试单管理API
 from fastapi import APIRouter, Query, Request
 from typing import List, Optional
 from datetime import datetime
+from decimal import Decimal
 from app.schemas.response import ResponseSchema
 from app.schemas.ui_test import (
     TestTaskCreateSchema,
@@ -17,6 +18,7 @@ from app.models.ui_test import (
     TestUICaseSuite,
     TestUICasesSuitesRelation,
     TestUICase,
+    TestUICaseExecutionRecord,
     TaskStatus
 )
 
@@ -154,7 +156,7 @@ async def get_test_tasks(
                 executed_cases=task.executed_cases or 0,
                 passed_cases=task.passed_cases or 0,
                 failed_cases=task.failed_cases or 0,
-                progress=task.progress or 0.0
+                progress=float(task.progress or 0.0)
             )
             task_list.append(task_data)
         
@@ -215,7 +217,7 @@ async def get_test_task(task_id: int):
             executed_cases=task.executed_cases or 0,
             passed_cases=task.passed_cases or 0,
             failed_cases=task.failed_cases or 0,
-            progress=task.progress or 0.0,
+            progress=float(task.progress or 0.0),
             suites=selected_suites,
             cases=selected_cases
         )
@@ -304,24 +306,42 @@ async def delete_test_task(task_id: int):
 
 
 @router.post("/{task_id}/execute", summary="执行测试单")
-async def execute_test_task(task_id: int):
+async def execute_test_task(task_id: int, request: Request):
     """
     立即执行测试单
     """
     try:
+        from app.core.task_execution_scheduler import TaskExecutionScheduler
+        import asyncio
+        
         task = await TestUITask.get_or_none(id=task_id)
         
         if not task:
             return ResponseSchema.error(msg="测试单不存在", code=404)
         
+        # 检查状态
+        if task.status == TaskStatus.RUNNING:
+            return ResponseSchema.error(msg="测试单正在执行中", code=400)
+        
         # 更新状态为执行中
         task.status = TaskStatus.RUNNING
+        task.start_time = datetime.now()
         await task.save()
         
-        # TODO: 调用执行引擎执行测试
-        # 这里应该启动后台任务执行测试用例
+        # 创建执行调度器
+        scheduler = TaskExecutionScheduler()
         
-        return ResponseSchema.success(msg="测试单已开始执行")
+        # 在后台执行（不阻塞 API 响应）
+        asyncio.create_task(scheduler.execute_task(task_id))
+        
+        return ResponseSchema.success(
+            msg="测试单已开始执行",
+            data={
+                "task_id": task_id,
+                "status": task.status,
+                "start_time": format_datetime(task.start_time)
+            }
+        )
         
     except Exception as e:
         return ResponseSchema.error(msg=f"服务器错误: {str(e)}", code=500)
@@ -338,13 +358,128 @@ async def cancel_test_task(task_id: int):
         if not task:
             return ResponseSchema.error(msg="测试单不存在", code=404)
         
-        if task.status != TaskStatus.RUNNING:
+        if task.status not in [TaskStatus.RUNNING, TaskStatus.PAUSED]:
             return ResponseSchema.error(msg="测试单未在执行中", code=400)
         
         task.status = TaskStatus.CANCELLED
+        task.end_time = datetime.now()
         await task.save()
         
         return ResponseSchema.success(msg="已取消执行")
+        
+    except Exception as e:
+        return ResponseSchema.error(msg=f"服务器错误: {str(e)}", code=500)
+
+
+@router.post("/{task_id}/pause", summary="暂停执行")
+async def pause_test_task(task_id: int):
+    """
+    暂停正在执行的测试单
+    """
+    try:
+        task = await TestUITask.get_or_none(id=task_id)
+        
+        if not task:
+            return ResponseSchema.error(msg="测试单不存在", code=404)
+        
+        if task.status != TaskStatus.RUNNING:
+            return ResponseSchema.error(msg="测试单未在执行中", code=400)
+        
+        task.status = TaskStatus.PAUSED
+        await task.save()
+        
+        return ResponseSchema.success(msg="已暂停执行")
+        
+    except Exception as e:
+        return ResponseSchema.error(msg=f"服务器错误: {str(e)}", code=500)
+
+
+@router.post("/{task_id}/resume", summary="继续执行")
+async def resume_test_task(task_id: int):
+    """
+    继续执行已暂停的测试单
+    """
+    try:
+        from app.core.task_execution_scheduler import TaskExecutionScheduler
+        import asyncio
+        
+        task = await TestUITask.get_or_none(id=task_id)
+        
+        if not task:
+            return ResponseSchema.error(msg="测试单不存在", code=404)
+        
+        if task.status != TaskStatus.PAUSED:
+            return ResponseSchema.error(msg="测试单未处于暂停状态", code=400)
+        
+        # 更新状态为执行中
+        task.status = TaskStatus.RUNNING
+        await task.save()
+        
+        # 创建执行调度器
+        scheduler = TaskExecutionScheduler()
+        
+        # 在后台继续执行（不阻塞 API 响应）
+        asyncio.create_task(scheduler.execute_task(task_id))
+        
+        return ResponseSchema.success(
+            msg="已继续执行",
+            data={
+                "task_id": task_id,
+                "status": task.status
+            }
+        )
+        
+    except Exception as e:
+        return ResponseSchema.error(msg=f"服务器错误: {str(e)}", code=500)
+
+
+@router.post("/{task_id}/restart", summary="重新执行")
+async def restart_test_task(task_id: int):
+    """
+    重新执行测试单（清理已有结果，从头开始）
+    """
+    try:
+        from app.core.task_execution_scheduler import TaskExecutionScheduler
+        import asyncio
+        
+        task = await TestUITask.get_or_none(id=task_id)
+        
+        if not task:
+            return ResponseSchema.error(msg="测试单不存在", code=404)
+        
+        # 清理已有执行记录（如果需要保留历史，可以改为标记而不是删除）
+        # 这里我们删除该测试单的所有执行记录
+        reports = await TestUIReport.filter(test_task=task_id).all()
+        for report in reports:
+            # 删除报告的用例执行记录
+            await TestUICaseExecutionRecord.filter(test_report_id=report.id).delete()
+            # 删除报告
+            await report.delete()
+        
+        # 重置任务状态和统计
+        task.status = TaskStatus.RUNNING
+        task.start_time = datetime.now()
+        # end_time 设置为 null 需要直接更新数据库
+        task.executed_cases = 0
+        task.passed_cases = 0
+        task.failed_cases = 0
+        task.progress = Decimal('0.0')
+        await task.save(update_fields=['status', 'start_time', 'executed_cases', 'passed_cases', 'failed_cases', 'progress'])
+        
+        # 创建执行调度器
+        scheduler = TaskExecutionScheduler()
+        
+        # 在后台执行（不阻塞 API 响应）
+        asyncio.create_task(scheduler.execute_task(task_id))
+        
+        return ResponseSchema.success(
+            msg="测试单已开始重新执行",
+            data={
+                "task_id": task_id,
+                "status": task.status,
+                "start_time": format_datetime(task.start_time)
+            }
+        )
         
     except Exception as e:
         return ResponseSchema.error(msg=f"服务器错误: {str(e)}", code=500)
@@ -376,6 +511,68 @@ async def get_task_progress(task_id: int):
         }
         
         return ResponseSchema.success(data=progress_data)
+        
+    except Exception as e:
+        return ResponseSchema.error(msg=f"服务器错误: {str(e)}", code=500)
+
+
+@router.get("/{task_id}/log", summary="获取执行日志")
+async def get_task_log(task_id: int, offset: int = 0):
+    """
+    获取测试单执行日志（支持增量读取）
+    
+    参数:
+    - task_id: 测试单ID
+    - offset: 读取偏移量（字节），默认为0表示从头读取
+    
+    返回:
+    - log_content: 日志内容
+    - next_offset: 下次读取的偏移量
+    - is_complete: 任务是否已完成
+    """
+    try:
+        task = await TestUITask.get_or_none(id=task_id)
+        
+        if not task:
+            return ResponseSchema.error(msg="测试单不存在", code=404)
+        
+        log_content = ""
+        next_offset = offset
+        
+        # 如果有日志文件路径，读取文件内容
+        if task.log_file_path:
+            import os
+            if os.path.exists(task.log_file_path):
+                try:
+                    with open(task.log_file_path, 'r', encoding='utf-8') as f:
+                        # 移动到offset位置
+                        f.seek(offset)
+                        # 读取新内容
+                        log_content = f.read()
+                        # 获取当前文件位置作为下次的offset
+                        next_offset = f.tell()
+                except Exception as e:
+                    return ResponseSchema.error(msg=f"读取日志文件失败: {str(e)}", code=500)
+            else:
+                return ResponseSchema.error(msg="日志文件不存在，测试可能未开始执行或执行异常", code=404)
+        else:
+            return ResponseSchema.error(msg="暂无执行日志，测试尚未开始", code=404)
+        
+        # 判断任务是否已完成
+        is_complete = task.status in [TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELLED]
+        
+        log_data = {
+            "task_id": task_id,
+            "task_name": task.name,
+            "status": task.status,
+            "log_content": log_content,
+            "next_offset": next_offset,
+            "is_complete": is_complete,
+            "start_time": format_datetime(task.start_time) if task.start_time else None,
+            "end_time": format_datetime(task.end_time) if task.end_time else None
+        }
+        
+        return ResponseSchema.success(data=log_data)
         
     except Exception as e:
         return ResponseSchema.error(msg=f"服务器错误: {str(e)}", code=500)
@@ -495,21 +692,21 @@ async def get_task_reports(task_id: int):
         if not task:
             return ResponseSchema.error(msg="测试单不存在", code=404)
         
-        reports = await TestUIReport.filter(test_task_id=task_id).order_by('-created_time').all()
+        reports = await TestUIReport.filter(test_task=task_id).order_by('-created_time').all()
         
         report_list = [
             {
                 "id": report.id,
-                "test_task_id": report.test_task_id,
+                "test_task_id": task_id,
                 "total_cases": report.total_cases,
                 "passed_cases": report.passed_cases,
                 "failed_cases": report.failed_cases,
                 "skipped_cases": report.skipped_cases,
-                "pass_rate": report.pass_rate,
-                "start_time": report.start_time,
-                "end_time": report.end_time,
-                "duration": report.duration,
-                "created_time": report.created_time
+                "pass_rate": float(report.pass_rate),
+                "start_time": format_datetime(report.execution_time),
+                "end_time": format_datetime(report.created_time),
+                "duration": report.execution_duration,
+                "created_time": format_datetime(report.created_time)
             }
             for report in reports
         ]

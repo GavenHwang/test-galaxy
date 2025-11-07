@@ -23,7 +23,9 @@ class Settings(BaseSettings):
     PROJECT_ROOT: str = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
     BASE_DIR: str = os.path.abspath(os.path.join(PROJECT_ROOT, os.pardir))
     LOGS_ROOT: str = os.path.join(BASE_DIR, "app/logs")
-    SECRET_KEY: str = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(32))
+    # 固定 SECRET_KEY，避免重启后 Token 失效
+    # 生产环境应从环境变量或配置文件读取
+    SECRET_KEY: str = os.getenv('SECRET_KEY', 'test-galaxy-secret-key-fixed-20241106-do-not-share-in-production')
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 day
     

@@ -5,18 +5,22 @@
       <el-card class="summary-card">
         <template #header>
           <div class="card-header">
-            <span>报告摘要</span>
+            <span>报告详情</span>
             <el-button text @click="goBack">返回列表</el-button>
           </div>
         </template>
         
         <el-descriptions :column="3" border>
-          <el-descriptions-item label="报告ID">{{ reportData.id }}</el-descriptions-item>
-          <el-descriptions-item label="测试单ID">{{ reportData.test_task_id }}</el-descriptions-item>
-          <el-descriptions-item label="执行时长">{{ formatDuration(reportData.duration) }}</el-descriptions-item>
-          <el-descriptions-item label="开始时间">{{ reportData.start_time }}</el-descriptions-item>
-          <el-descriptions-item label="结束时间">{{ reportData.end_time }}</el-descriptions-item>
+          <el-descriptions-item label="测试单名称">{{ reportData.test_task_name }}</el-descriptions-item>
+          <el-descriptions-item label="测试单ID">
+            <el-link type="primary" @click="goToTask(reportData.test_task_id)">
+              {{ reportData.test_task_id }}
+            </el-link>
+          </el-descriptions-item>
           <el-descriptions-item label="创建时间">{{ reportData.created_time }}</el-descriptions-item>
+          <el-descriptions-item label="开始时间">{{ reportData.start_time || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="结束时间">{{ reportData.end_time || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="执行时长">{{ formatDuration(reportData.execution_duration) }}</el-descriptions-item>
         </el-descriptions>
         
         <div class="statistics-area">
@@ -37,14 +41,14 @@
             <div class="stat-label">跳过</div>
           </div>
           <div class="stat-item warning">
-            <div class="stat-value">{{ Math.round(reportData.pass_rate * 100) }}%</div>
+            <div class="stat-value">{{ Math.round(reportData.pass_rate) }}%</div>
             <div class="stat-label">通过率</div>
           </div>
         </div>
         
         <!-- 通过率图表 -->
         <div class="chart-container">
-          <div ref="passRateChart" style="width: 100%; height: 300px"></div>
+          <div ref="passRateChart" style="width: 100%; height: 350px"></div>
         </div>
       </el-card>
 
@@ -65,21 +69,23 @@
                     <h4>执行步骤详情</h4>
                     <el-table :data="row.steps" border size="small">
                       <el-table-column prop="step_number" label="步骤序号" width="100" align="center" />
-                      <el-table-column prop="action" label="操作" show-overflow-tooltip />
+                      <el-table-column prop="action" label="操作类型" width="120" align="center" />
+                      <el-table-column prop="description" label="操作描述" show-overflow-tooltip />
+                      <el-table-column prop="input_data" label="输入数据" width="150" show-overflow-tooltip />
                       <el-table-column prop="status" label="状态" width="100" align="center">
                         <template #default="{ row: step }">
-                          <el-tag :type="step.status === 'PASSED' ? 'success' : 'danger'" size="small">
-                            {{ step.status === 'PASSED' ? '通过' : '失败' }}
+                          <el-tag :type="step.status === '通过' ? 'success' : 'danger'" size="small">
+                            {{ step.status === '通过' ? '通过' : '失败' }}
                           </el-tag>
                         </template>
                       </el-table-column>
                       <el-table-column prop="duration" label="耗时" width="100" align="center">
                         <template #default="{ row: step }">
-                          {{ formatDuration(step.duration) }}
+                          {{ formatDurationMs(step.duration) }}
                         </template>
                       </el-table-column>
                       <el-table-column prop="error_message" label="错误信息" show-overflow-tooltip />
-                      <el-table-column label="操作" width="100" align="center">
+                      <el-table-column label="截图" width="100" align="center">
                         <template #default="{ row: step }">
                           <el-button 
                             v-if="step.screenshot_path" 
@@ -99,8 +105,8 @@
               <el-table-column prop="test_case_id" label="用例ID" width="100" />
               <el-table-column prop="status" label="状态" width="100" align="center">
                 <template #default="{ row }">
-                  <el-tag :type="row.status === 'PASSED' ? 'success' : 'danger'" size="small">
-                    {{ row.status === 'PASSED' ? '通过' : '失败' }}
+                  <el-tag :type="row.status === '通过' ? 'success' : 'danger'" size="small">
+                    {{ row.status === '通过' ? '通过' : '失败' }}
                   </el-tag>
                 </template>
               </el-table-column>
@@ -123,21 +129,23 @@
                     <h4>执行步骤详情</h4>
                     <el-table :data="row.steps" border size="small">
                       <el-table-column prop="step_number" label="步骤序号" width="100" align="center" />
-                      <el-table-column prop="action" label="操作" show-overflow-tooltip />
+                      <el-table-column prop="action" label="操作类型" width="120" align="center" />
+                      <el-table-column prop="description" label="操作描述" show-overflow-tooltip />
+                      <el-table-column prop="input_data" label="输入数据" width="150" show-overflow-tooltip />
                       <el-table-column prop="status" label="状态" width="100" align="center">
                         <template #default="{ row: step }">
-                          <el-tag :type="step.status === 'PASSED' ? 'success' : 'danger'" size="small">
-                            {{ step.status === 'PASSED' ? '通过' : '失败' }}
+                          <el-tag :type="step.status === '通过' ? 'success' : 'danger'" size="small">
+                            {{ step.status === '通过' ? '通过' : '失败' }}
                           </el-tag>
                         </template>
                       </el-table-column>
                       <el-table-column prop="duration" label="耗时" width="100" align="center">
                         <template #default="{ row: step }">
-                          {{ formatDuration(step.duration) }}
+                          {{ formatDurationMs(step.duration) }}
                         </template>
                       </el-table-column>
                       <el-table-column prop="error_message" label="错误信息" show-overflow-tooltip />
-                      <el-table-column label="操作" width="100" align="center">
+                      <el-table-column label="截图" width="100" align="center">
                         <template #default="{ row: step }">
                           <el-button 
                             v-if="step.screenshot_path" 
@@ -163,7 +171,7 @@
               <el-table-column prop="error_message" label="错误信息" show-overflow-tooltip />
               <el-table-column label="失败步骤" width="100" align="center">
                 <template #default="{ row }">
-                  {{ row.steps.filter(s => s.status === 'FAILED').length }}
+                  {{ row.steps.filter(s => s.status === '失败').length }}
                 </template>
               </el-table-column>
             </el-table>
@@ -203,15 +211,37 @@ const allCases = computed(() => {
 })
 
 const failedCases = computed(() => {
-  return allCases.value.filter(c => c.status === 'FAILED')
+  return allCases.value.filter(c => c.status === '失败')
 })
 
-// 格式化时长
+// 格式化时长（秒）
 const formatDuration = (seconds) => {
   if (!seconds) return '-'
   const hours = Math.floor(seconds / 3600)
   const minutes = Math.floor((seconds % 3600) / 60)
   const secs = Math.floor(seconds % 60)
+  
+  if (hours > 0) {
+    return `${hours}时${minutes}分${secs}秒`
+  } else if (minutes > 0) {
+    return `${minutes}分${secs}秒`
+  } else {
+    return `${secs}秒`
+  }
+}
+
+// 格式化时长（毫秒）
+const formatDurationMs = (milliseconds) => {
+  if (!milliseconds) return '-'
+  const seconds = milliseconds / 1000
+  
+  if (seconds < 1) {
+    return `${milliseconds}毫秒`
+  }
+  
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const secs = (seconds % 60).toFixed(2)
   
   if (hours > 0) {
     return `${hours}时${minutes}分${secs}秒`
@@ -233,6 +263,11 @@ const goBack = () => {
   router.push('/ui-test/test-reports')
 }
 
+// 跳转到测试单详情
+const goToTask = (taskId) => {
+  router.push(`/ui-test/test-tasks/${taskId}`)
+}
+
 // 初始化图表
 const initCharts = () => {
   if (!passRateChart.value || !reportData.value) return
@@ -242,7 +277,8 @@ const initCharts = () => {
   const option = {
     title: {
       text: '测试结果分布',
-      left: 'center'
+      left: 'center',
+      top: 10  // 调高标题位置到距离顶部 10px
     },
     tooltip: {
       trigger: 'item',
@@ -258,6 +294,7 @@ const initCharts = () => {
         name: '测试结果',
         type: 'pie',
         radius: ['40%', '70%'],
+        center: ['50%', '55%'],  // 调整饼图垂直居中位置
         avoidLabelOverlap: false,
         itemStyle: {
           borderRadius: 10,

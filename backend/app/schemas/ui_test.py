@@ -43,6 +43,7 @@ class TestUserCreateSchema(BaseModel):
     password: str = Field(..., min_length=6, max_length=255, description="密码")
     product: str = Field(..., min_length=1, max_length=100, description="所属产品/项目")
     role_name: str = Field(..., min_length=1, max_length=100, description="业务角色")
+    role_code: str = Field(..., min_length=1, max_length=50, description="角色编码")
     description: Optional[str] = Field(None, max_length=500, description="描述")
 
 
@@ -52,6 +53,7 @@ class TestUserUpdateSchema(BaseModel):
     password: Optional[str] = Field(None, min_length=6, max_length=255, description="密码")
     product: Optional[str] = Field(None, min_length=1, max_length=100, description="所属产品/项目")
     role_name: Optional[str] = Field(None, min_length=1, max_length=100, description="业务角色")
+    role_code: Optional[str] = Field(None, min_length=1, max_length=50, description="角色编码")
     description: Optional[str] = Field(None, max_length=500, description="描述")
 
 
@@ -61,6 +63,7 @@ class TestUserResponseSchema(BaseResponseSchema):
     password: str  # 前端显示时需要处理为******
     product: str
     role_name: str
+    role_code: Optional[str] = None
     description: Optional[str] = None
     created_by: str
 

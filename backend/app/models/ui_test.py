@@ -13,8 +13,7 @@ __all__ = [
     'TestCommonUser', 'TestUIElement', 'TestUIElementPermission',
     'TestUICase', 'TestUICasePermission', 'TestUIStep', 'TestUICaseSuite',
     'TestUICasesSuitesRelation', 'TestUITask', 'TestUITaskContent',
-    'TestUIReport', 'TestUICaseExecutionRecord', 'TestUICaseStepExecutionRecord',
-    'TestProductRole'  # 新增产品角色字典表
+    'TestUIReport', 'TestUICaseExecutionRecord', 'TestUICaseStepExecutionRecord'
 ]
 
 
@@ -71,6 +70,7 @@ class TaskStatus(str, Enum):
     """测试单状态"""
     PENDING = "待执行"
     RUNNING = "执行中"
+    PAUSED = "已暂停"
     COMPLETED = "已完成"
     CANCELLED = "已取消"
     FAILED = "执行失败"
@@ -92,27 +92,13 @@ class ExecutionStatus(str, Enum):
 
 # ==================== 模型定义 ====================
 
-class TestProductRole(BaseModel, TimestampMixin):
-    """产品角色字典表"""
-    product = fields.CharField(max_length=100, index=True, description="产品名称")
-    role_name = fields.CharField(max_length=100, description="角色名称")
-    role_code = fields.CharField(max_length=50, index=True, description="角色编码")
-    description = fields.TextField(null=True, description="描述")
-    created_by = fields.CharField(max_length=50, description="创建人")
-
-    class Meta(BaseModel.Meta):
-        table = "test_product_roles"
-        table_description = "产品角色字典表"
-        unique_together = (("product", "role_name"),)
-        abstract = False
-
-
 class TestCommonUser(BaseModel, TimestampMixin):
     """测试用户表（被测系统的业务用户）"""
     username = fields.CharField(max_length=100, description="用户名")
     password = fields.CharField(max_length=255, description="密码")
     product = fields.CharField(max_length=100, index=True, description="所属产品/项目")
     role_name = fields.CharField(max_length=100, description="业务角色")
+    role_code = fields.CharField(max_length=50, null=True, description="角色编码")
     description = fields.TextField(null=True, description="描述")
     created_by = fields.CharField(max_length=50, description="创建人")
 
@@ -283,6 +269,7 @@ class TestUITask(BaseModel, TimestampMixin):
     created_by = fields.CharField(max_length=50, description="创建人")
     start_time = fields.DatetimeField(null=True, description="开始时间")
     end_time = fields.DatetimeField(null=True, description="结束时间")
+    log_file_path = fields.CharField(max_length=500, null=True, description="日志文件路径")
     
     # 统计字段
     total_cases = fields.IntField(default=0, description="总用例数")
@@ -390,6 +377,7 @@ class TestUICaseStepExecutionRecord(BaseModel, TimestampMixin):
     )
     step_number = fields.IntField(description="步骤序号")
     action = fields.CharField(max_length=50, description="操作类型")
+    description = fields.TextField(null=True, description="步骤描述")
     element = fields.ForeignKeyField(
         "models.TestUIElement",
         on_delete=fields.SET_NULL,

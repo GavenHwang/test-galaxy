@@ -560,3 +560,37 @@ a {
     }
   }
 }
+
+// 操作按钮公共样式（用于表格操作列）
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+  
+  .el-button {
+    padding: 5px;
+    transition: all 0.3s ease;
+    
+    // text 类型按钮的交互效果
+    &.is-text {
+      background-color: transparent;
+      
+      // 悬停效果：淡红色背景 + 放大
+      &:hover {
+        background-color: #fef0f1 !important;
+        transform: scale(1.1);
+      }
+      
+      // 点击效果：深红色背景 + 缩小
+      &:active {
+        background-color: #fde2e4 !important;
+        transform: scale(0.95);
+      }
+      
+      // 点击后自动恢复透明背景（通过 transition 实现）
+      // 当鼠标离开时，背景自动恢复为 transparent
+    }
+  }
+}
