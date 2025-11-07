@@ -1,16 +1,14 @@
 <template>
-  <div class="elements-container">
-    <!-- 操作工具栏 -->
-    <div class="toolbar">
-      <el-button type="primary" @click="handleCreate">
-        <el-icon><Plus /></el-icon>
-        新建元素
-      </el-button>
-    </div>
-
-    <!-- 搜索筛选区 -->
-    <div class="search-area">
-      <el-form :inline="true" :model="searchForm" class="search-form">
+  <div class="page-container">
+    <!-- 页面头部 -->
+    <div class="page-header">
+      <div>
+        <el-button type="primary" @click="handleCreate">
+          <el-icon><Plus /></el-icon>
+          新建元素
+        </el-button>
+      </div>
+      <el-form :inline="true" :model="searchForm">
         <el-form-item label="元素名称">
           <el-input 
             v-model="searchForm.name" 
@@ -102,7 +100,7 @@
       </el-table-column>
       <el-table-column prop="created_by" label="创建人" width="120" />
       <el-table-column prop="created_time" label="创建时间" width="180" />
-      <el-table-column label="操作" width="140" fixed="right" align="center">
+      <el-table-column label="操作" width="180" fixed="right" align="center">
         <template #default="{ row }">
           <div class="action-buttons">
             <el-tooltip content="编辑" placement="top">
@@ -111,6 +109,14 @@
                 type="primary" 
                 @click="handleEdit(row)"
                 :icon="Edit"
+              />
+            </el-tooltip>
+            <el-tooltip content="复制" placement="top">
+              <el-button 
+                text 
+                type="primary" 
+                @click="handleCopy(row)"
+                :icon="CopyDocument"
               />
             </el-tooltip>
             <el-tooltip content="权限" placement="top">
@@ -181,7 +187,6 @@
               :value="item.value"
             />
           </el-select>
-          <div class="form-tip">{{ getSelectorTip(formData.selector_type) }}</div>
         </el-form-item>
         <el-form-item label="定位器值" prop="selector_value">
           <el-input
@@ -306,7 +311,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Edit, Delete, Lock } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, Lock, CopyDocument } from '@element-plus/icons-vue'
 import {
   getElements,
   createElement,
@@ -319,6 +324,7 @@ import {
   getElementRelatedCases,
   getRoles
 } from '@/api/uitest'
+import { useAutoSearch } from '@/composables/useAutoSearch'
 
 // 定位器类型选项
 const selectorTypeOptions = [
@@ -333,27 +339,11 @@ const selectorTypeOptions = [
   { label: 'TEST_ID', value: 'TEST_ID' }
 ]
 
-// 获取定位器提示
-const getSelectorTip = (type) => {
-  const tips = {
-    'ID': '示例：submit-btn',
-    'NAME': '示例：username',
-    'CSS': '示例：.btn-primary 或 #submit-btn',
-    'XPATH': '示例：//div[@class="login"]/button',
-    'CLASS_NAME': '示例：btn-primary',
-    'TAG_NAME': '示例：button',
-    'LINK_TEXT': '示例：登录',
-    'PARTIAL_LINK_TEXT': '示例：登',
-    'TEST_ID': '示例：login-submit'
-  }
-  return tips[type] || ''
-}
-
 // 表格数据
 const tableData = ref([])
 const total = ref(0)
 const currentPage = ref(1)
-const pageSize = ref(20)
+const pageSize = ref(10)
 const loading = ref(false)
 
 // 搜索表单
@@ -522,6 +512,26 @@ const handleEdit = (row) => {
   loadOptions()
 }
 
+// 复制元素
+const handleCopy = (row) => {
+  isEdit.value = false
+  editId.value = null
+  dialogTitle.value = '复制页面元素'
+  
+  // 复制数据，名称加上 "_副本" 后缀
+  Object.assign(formData, {
+    name: row.name + '_副本',
+    selector_type: row.selector_type,
+    selector_value: row.selector_value,
+    page: row.page,
+    module: row.module || '',
+    description: row.description || ''
+  })
+  
+  dialogVisible.value = true
+  loadOptions()
+}
+
 // 删除元素
 const handleDelete = (row) => {
   ElMessageBox.confirm(
@@ -648,71 +658,48 @@ onMounted(() => {
   loadData()
   loadOptions()
 })
+
+// 配置自动搜索
+useAutoSearch({
+  searchForm,
+  currentPage,
+  onSearch: loadData,
+  inputFields: ['name'],                           // 输入框字段（防抖搜索）
+  selectFields: ['page', 'module', 'selector_type'], // 下拉框字段（立即搜索）
+  debounceDelay: 500                               // 防抖延迟 0.5秒
+})
 </script>
 
 <style scoped lang="less">
-.elements-container {
-  padding: 20px;
-  
-  .toolbar {
-    margin-bottom: 20px;
-  }
-  
-  .search-area {
-    margin-bottom: 20px;
-    padding: 20px;
-    background: #fff;
-    border-radius: 4px;
-    
-    .search-form {
-      .el-form-item {
-        margin-bottom: 0;
-      }
-    }
-  }
-  
-  .pagination {
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
-  }
-  
-  .action-buttons {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 2px;
-    white-space: nowrap;
-    
-    .el-button {
-      padding: 5px;
-    }
-  }
+@import '@/assets/less/variables.less';
+
+.page-container {
+  // 使用全局样式，无需重复定义
   
   .form-tip {
-    font-size: 12px;
-    color: #909399;
-    margin-top: 4px;
+    font-size: @font-size-xs;
+    color: @text-placeholder;
+    margin-top: @spacing-xs;
   }
   
   .permission-content {
-    padding: 20px;
+    padding: @spacing-xl;
     
     .drawer-footer {
-      margin-top: 20px;
+      margin-top: @spacing-xl;
       text-align: right;
     }
   }
   
   .related-cases-content {
-    padding: 20px;
+    padding: @spacing-xl;
     
     .case-title {
       display: flex;
       align-items: center;
       justify-content: space-between;
       width: 100%;
-      padding-right: 20px;
+      padding-right: @spacing-xl;
     }
   }
 }

@@ -1,10 +1,10 @@
 <template>
   <div class="env-container">
     <div class="user-header">
-      <el-button type="primary" plain @click="dialogFormVisible = true">新增</el-button>
+      <el-button type="primary" @click="dialogFormVisible = true"><el-icon><Plus /></el-icon>新增</el-button>
       <el-form :inline="true">
         <el-form-item>
-          <el-input placeholder="请输入用户名" v-model="username"></el-input>
+          <el-input placeholder="请输入用户名" v-model="searchForm.username"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">搜索</el-button>
@@ -84,6 +84,7 @@
 
 <script setup>
 import {ref, onMounted, getCurrentInstance, reactive} from 'vue';
+import { useAutoSearch } from '@/composables/useAutoSearch'
 
 // 表格数据
 const tableData = ref([])
@@ -99,8 +100,10 @@ const total = ref(0)
 const dialogFormVisible = ref(false)
 const formLabelWidth = '140px'
 
-// 搜索框的值
-const username = ref(''); // 响应式数据
+// 搜索框的值（改为 reactive 对象）
+const searchForm = reactive({
+  username: ''
+})
 
 // 添加用户表单数据
 const form = reactive({
@@ -139,7 +142,7 @@ const roleOptions = ref([
 
 // 请求参数 & 获取数据
 const fetchTableData = async () => {
-  const request_user_data = ref({page: currentPage.value, size: pageSize.value, username: username.value})
+  const request_user_data = ref({page: currentPage.value, size: pageSize.value, username: searchForm.username})
   try {
     const userData = await proxy.$api.getUserData(request_user_data.value)
     tableData.value = userData.data
@@ -242,6 +245,15 @@ const handleDelete = async (id) => {
 // 初始化
 onMounted(() => {
   fetchTableData()
+})
+
+// 配置自动搜索
+useAutoSearch({
+  searchForm,
+  currentPage,
+  onSearch: fetchTableData,
+  inputFields: ['username'],  // 输入框字段（防抖搜索）
+  debounceDelay: 500          // 防抖延迟 0.5秒
 })
 </script>
 

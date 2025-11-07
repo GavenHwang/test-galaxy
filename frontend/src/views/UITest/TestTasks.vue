@@ -1,16 +1,14 @@
 <template>
-  <div class="test-tasks-container">
-    <!-- 操作工具栏 -->
-    <div class="toolbar">
-      <el-button type="primary" @click="handleCreate">
-        <el-icon><Plus /></el-icon>
-        新建测试单
-      </el-button>
-    </div>
-
-    <!-- 搜索筛选区 -->
-    <div class="search-area">
-      <el-form :inline="true" :model="searchForm" class="search-form">
+  <div class="page-container">
+    <!-- 页面头部 -->
+    <div class="page-header">
+      <div>
+        <el-button type="primary" @click="handleCreate">
+          <el-icon><Plus /></el-icon>
+          新建测试单
+        </el-button>
+      </div>
+      <el-form :inline="true" :model="searchForm">
         <el-form-item label="测试单名称">
           <el-input 
             v-model="searchForm.name" 
@@ -432,12 +430,13 @@ import {
   getTestSuites,
   getTestCases
 } from '@/api/uitest'
+import { useAutoSearch } from '@/composables/useAutoSearch'
 
 // 表格数据
 const tableData = ref([])
 const total = ref(0)
 const currentPage = ref(1)
-const pageSize = ref(20)
+const pageSize = ref(10)  // 默认每页显示10条
 const loading = ref(false)
 
 // 搜索表单
@@ -945,63 +944,30 @@ const handleDialogClose = () => {
 onMounted(() => {
   loadData()
 })
+
+// 配置自动搜索
+useAutoSearch({
+  searchForm,
+  currentPage,
+  onSearch: loadData,
+  inputFields: ['name', 'environment', 'created_by'], // 输入框字段（防抖搜索）
+  selectFields: ['status'],                           // 下拉框字段（立即搜索）
+  debounceDelay: 500                                  // 防抖延迟 0.5秒
+})
 </script>
 
 <style scoped lang="less">
-.test-tasks-container {
-  padding: 20px;
-  height: calc(100vh - 100px);
-  display: flex;
-  flex-direction: column;
-  
-  .toolbar {
-    margin-bottom: 20px;
-  }
-  
-  .search-area {
-    margin-bottom: 20px;
-    padding: 20px;
-    background: #fff;
-    border-radius: 4px;
-    flex-shrink: 0;
-    
-    .search-form {
-      .el-form-item {
-        margin-bottom: 0;
-      }
-    }
-  }
-  
-  :deep(.el-table) {
-    flex: 1;
-    overflow: auto;
-  }
-  
-  .action-buttons {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 2px;
-    white-space: nowrap;
-    
-    .el-button {
-      padding: 5px;
-    }
-  }
-  
-  .pagination {
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
-    flex-shrink: 0;
-  }
+@import '@/assets/less/variables.less';
+
+.page-container {
+  // 使用全局样式，无需重复定义
   
   // 状态标签自定义颜色
   :deep(.el-tag) {
     &.status-pending {
-      background-color: #f4f4f5;
-      color: #909399;
-      border-color: #e9e9eb;
+      background-color: @bg-light;
+      color: @text-placeholder;
+      border-color: @border-lighter;
     }
     
     &.status-running {
@@ -1011,15 +977,15 @@ onMounted(() => {
     }
     
     &.status-paused {
-      background-color: #fdf6ec;
-      color: #e6a23c;
-      border-color: #f5dab1;
+      background-color: @warning-light;
+      color: @warning-color;
+      border-color: @warning-border;
     }
     
     &.status-completed {
       background-color: #f0f9ff;
-      color: #67c23a;
-      border-color: #c2e7b0;
+      color: @success-color;
+      border-color: @success-border;
     }
     
     &.status-failed {
@@ -1029,9 +995,9 @@ onMounted(() => {
     }
     
     &.status-cancelled {
-      background-color: #f4f4f5;
-      color: #909399;
-      border-color: #d3d4d6;
+      background-color: @bg-light;
+      color: @text-placeholder;
+      border-color: @border-dark;
     }
   }
   
@@ -1040,14 +1006,14 @@ onMounted(() => {
     height: 500px;
     overflow-y: auto;
     background-color: #1e1e1e;
-    border-radius: 4px;
-    padding: 16px;
+    border-radius: @border-radius-base;
+    padding: @spacing-lg;
     
     .log-content {
       margin: 0;
       color: #d4d4d4;
       font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-      font-size: 13px;
+      font-size: @font-size-sm;
       line-height: 1.6;
       white-space: pre-wrap;
       word-wrap: break-word;

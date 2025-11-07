@@ -1,8 +1,9 @@
 <template>
-  <div class="test-reports-container">
+  <div class="page-container">
     <!-- 搜索筛选区 -->
-    <div class="search-area">
-      <el-form :inline="true" :model="searchForm" class="search-form">
+    <div class="page-header">
+      <div></div>
+      <el-form :inline="true" :model="searchForm">
         <el-form-item label="测试单ID">
           <el-input 
             v-model="searchForm.test_task_id" 
@@ -106,7 +107,7 @@ const router = useRouter()
 const tableData = ref([])
 const total = ref(0)
 const currentPage = ref(1)
-const pageSize = ref(20)
+const pageSize = ref(10)
 const loading = ref(false)
 
 // 搜索表单
@@ -213,48 +214,9 @@ onMounted(() => {
 </script>
 
 <style scoped lang="less">
-.test-reports-container {
-  padding: 20px;
-  height: calc(100vh - 100px);
-  display: flex;
-  flex-direction: column;
-  
-  .search-area {
-    margin-bottom: 20px;
-    padding: 20px;
-    background: #fff;
-    border-radius: 4px;
-    flex-shrink: 0;
-    
-    .search-form {
-      .el-form-item {
-        margin-bottom: 0;
-      }
-    }
-  }
-  
-  :deep(.el-table) {
-    flex: 1;
-    overflow: auto;
-  }
-  
-  .action-buttons {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 2px;
-    white-space: nowrap;
-    
-    .el-button {
-      padding: 5px;
-    }
-  }
-  
-  .pagination {
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
-    flex-shrink: 0;
-  }
+@import '@/assets/less/variables.less';
+
+.page-container {
+  // 使用全局样式，无需重复定义
 }
 </style>

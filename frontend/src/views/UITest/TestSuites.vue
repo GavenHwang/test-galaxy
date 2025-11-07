@@ -1,16 +1,14 @@
 <template>
-  <div class="test-suites-container">
-    <!-- 操作工具栏 -->
-    <div class="toolbar">
-      <el-button type="primary" @click="handleCreate">
-        <el-icon><Plus /></el-icon>
-        新建套件
-      </el-button>
-    </div>
-
-    <!-- 搜索筛选区 -->
-    <div class="search-area">
-      <el-form :inline="true" :model="searchForm" class="search-form">
+  <div class="page-container">
+    <!-- 页面头部 -->
+    <div class="page-header">
+      <div>
+        <el-button type="primary" @click="handleCreate">
+          <el-icon><Plus /></el-icon>
+          新建套件
+        </el-button>
+      </div>
+      <el-form :inline="true" :model="searchForm">
         <el-form-item label="套件名称">
           <el-input 
             v-model="searchForm.name" 
@@ -273,7 +271,7 @@ import {
 const tableData = ref([])
 const total = ref(0)
 const currentPage = ref(1)
-const pageSize = ref(20)
+const pageSize = ref(10)
 const loading = ref(false)
 
 // 搜索表单
@@ -608,42 +606,9 @@ onMounted(() => {
 </script>
 
 <style scoped lang="less">
-.test-suites-container {
-  padding: 20px;
-  
-  .toolbar {
-    margin-bottom: 20px;
-  }
-  
-  .search-area {
-    margin-bottom: 20px;
-    padding: 20px;
-    background: #fff;
-    border-radius: 4px;
-    
-    .search-form {
-      .el-form-item {
-        margin-bottom: 0;
-      }
-    }
-  }
-  
-  .pagination {
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
-  }
-  
-  .action-buttons {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 2px;
-    white-space: nowrap;
-    
-    .el-button {
-      padding: 5px;
-    }
-  }
+@import '@/assets/less/variables.less';
+
+.page-container {
+  // 使用全局样式，无需重复定义
 }
 </style>

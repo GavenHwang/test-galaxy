@@ -1,28 +1,26 @@
 <template>
-  <div class="test-cases-container">
-    <!-- 操作工具栏 -->
-    <div class="toolbar">
-      <el-button type="primary" @click="handleCreate">
-        <el-icon><Plus /></el-icon>
-        新建用例
-      </el-button>
-      <el-dropdown @command="handleBatchCommand" style="margin-left: 10px">
-        <el-button>
-          批量操作<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+  <div class="page-container">
+    <!-- 页面头部 -->
+    <div class="page-header">
+      <div>
+        <el-button type="primary" @click="handleCreate">
+          <el-icon><Plus /></el-icon>
+          新建用例
         </el-button>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item command="activate">批量激活</el-dropdown-item>
-            <el-dropdown-item command="disable">批量禁用</el-dropdown-item>
-            <el-dropdown-item command="delete">批量删除</el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-    </div>
-
-    <!-- 搜索筛选区 -->
-    <div class="search-area">
-      <el-form :inline="true" :model="searchForm" class="search-form">
+        <el-dropdown @command="handleBatchCommand" style="margin-left: 10px">
+          <el-button>
+            批量操作<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="activate">批量激活</el-dropdown-item>
+              <el-dropdown-item command="disable">批量禁用</el-dropdown-item>
+              <el-dropdown-item command="delete">批量删除</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
+      <el-form :inline="true" :model="searchForm">
         <el-form-item label="用例名称">
           <el-input 
             v-model="searchForm.name" 
@@ -201,6 +199,7 @@ import {
   batchUpdateCaseStatus,
   getModules
 } from '@/api/uitest'
+import { useAutoSearch } from '@/composables/useAutoSearch'
 
 const router = useRouter()
 
@@ -208,7 +207,7 @@ const router = useRouter()
 const tableData = ref([])
 const total = ref(0)
 const currentPage = ref(1)
-const pageSize = ref(20)
+const pageSize = ref(10)
 const loading = ref(false)
 const selectedRows = ref([])
 
@@ -442,45 +441,22 @@ onMounted(() => {
   loadData()
   loadModules()
 })
+
+// 配置自动搜索
+useAutoSearch({
+  searchForm,
+  currentPage,
+  onSearch: loadData,
+  inputFields: ['name'],                  // 输入框字段（防抖搜索）
+  selectFields: ['module', 'priority', 'status'], // 下拉框字段（立即搜索）
+  debounceDelay: 500                      // 防抖延迟 0.5秒
+})
 </script>
 
 <style scoped lang="less">
-.test-cases-container {
-  padding: 20px;
-  
-  .toolbar {
-    margin-bottom: 20px;
-  }
-  
-  .search-area {
-    margin-bottom: 20px;
-    padding: 20px;
-    background: #fff;
-    border-radius: 4px;
-    
-    .search-form {
-      .el-form-item {
-        margin-bottom: 0;
-      }
-    }
-  }
-  
-  .pagination {
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
-  }
-  
-  .action-buttons {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 2px;
-    white-space: nowrap;
-    
-    .el-button {
-      padding: 5px;
-    }
-  }
+@import '@/assets/less/variables.less';
+
+.page-container {
+  // 使用全局样式，无需重复定义
 }
 </style>

@@ -1,16 +1,14 @@
 <template>
-  <div class="test-users-container">
-    <!-- 操作工具栏 -->
-    <div class="toolbar">
-      <el-button type="primary" @click="handleCreate">
-        <el-icon><Plus /></el-icon>
-        新建用户
-      </el-button>
-    </div>
-
-    <!-- 搜索筛选区 -->
-    <div class="search-area">
-      <el-form :inline="true" :model="searchForm" class="search-form">
+  <div class="page-container">
+    <!-- 页面头部 -->
+    <div class="page-header">
+      <div>
+        <el-button type="primary" @click="handleCreate">
+          <el-icon><Plus /></el-icon>
+          新建用户
+        </el-button>
+      </div>
+      <el-form :inline="true" :model="searchForm">
         <el-form-item label="用户名">
           <el-input 
             v-model="searchForm.username" 
@@ -224,7 +222,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, View, Hide, Edit, Delete } from '@element-plus/icons-vue'
 import {
@@ -236,12 +234,13 @@ import {
   getRoles,
   getTestUserDetail
 } from '@/api/uitest'
+import { useAutoSearch } from '@/composables/useAutoSearch'
 
 // 表格数据
 const tableData = ref([])
 const total = ref(0)
 const currentPage = ref(1)
-const pageSize = ref(20)
+const pageSize = ref(10)
 const loading = ref(false)
 
 // 搜索表单
@@ -558,49 +557,38 @@ onMounted(() => {
   loadData()
   loadOptions()
 })
+
+// 配置自动搜索
+useAutoSearch({
+  searchForm,
+  currentPage,
+  onSearch: loadData,
+  inputFields: ['username'],           // 输入框字段（防抖搜索）
+  selectFields: ['product', 'role_name'], // 下拉框字段（立即搜索）
+  debounceDelay: 500                   // 防抖延迟 0.5秒
+})
 </script>
 
 <style scoped lang="less">
-.test-users-container {
-  padding: 20px;
-  
-  .toolbar {
-    margin-bottom: 20px;
-  }
-  
-  .search-area {
-    margin-bottom: 20px;
-    padding: 20px;
-    background: #fff;
-    border-radius: 4px;
-    
-    .search-form {
-      .el-form-item {
-        margin-bottom: 0;
-      }
-    }
-  }
+@import '@/assets/less/variables.less';
+
+.page-container {
+  // 使用全局样式，无需重复定义
   
   .password-cell {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: @spacing-sm;
     
     span {
       flex: 1;
     }
   }
   
-  .pagination {
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
-  }
-  
   .form-tip {
-    font-size: 12px;
-    color: #909399;
-    margin-top: 4px;
+    font-size: @font-size-xs;
+    color: @text-placeholder;
+    margin-top: @spacing-xs;
   }
 }
 </style>

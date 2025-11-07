@@ -566,31 +566,203 @@ a {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 2px;
+  gap: @spacing-xs;  // 从2px改为4px
   white-space: nowrap;
   
   .el-button {
-    padding: 5px;
-    transition: all 0.3s ease;
+    padding: 6px 8px;  // 优化内边距
+    border-radius: @border-radius-base;
+    font-size: @font-size-sm;
+    transition: @transition-fast;
+    opacity: 0.85;  // 默认半透明
     
     // text 类型按钮的交互效果
     &.is-text {
       background-color: transparent;
       
-      // 悬停效果：淡红色背景 + 放大
       &:hover {
-        background-color: #fef0f1 !important;
-        transform: scale(1.1);
+        opacity: 1;
+        background-color: @primary-shadow;
+        transform: scale(1.08);
       }
       
-      // 点击效果：深红色背景 + 缩小
       &:active {
-        background-color: #fde2e4 !important;
-        transform: scale(0.95);
+        background-color: darken(@primary-shadow, 5%);
+        transform: scale(0.96);
+      }
+    }
+    
+    // 核心操作按钮（图标+文字）
+    &.action-primary {
+      opacity: 1;
+      font-weight: 500;
+      
+      .el-icon {
+        margin-right: 4px;
+      }
+    }
+  }
+}
+
+// ==================== 页面布局公共样式 ====================
+
+// 统一页面容器样式
+.page-container {
+  padding: @spacing-xxl;
+  background-color: @bg-white;
+  border-radius: @border-radius-large;
+  box-shadow: @box-shadow-base;
+  min-height: calc(100vh - 180px);
+  transition: @transition-base;
+  
+  // 响应式优化
+  @media (max-width: 768px) {
+    padding: @spacing-lg;
+    min-height: calc(100vh - 120px);
+  }
+}
+
+// 统一页面头部样式
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: @spacing-xl;
+  padding-bottom: @spacing-lg;
+  border-bottom: 1px solid @border-light;
+  
+  .el-button {
+    height: 36px;
+    border-radius: @border-radius-medium;
+    font-weight: 500;
+  }
+  
+  .el-form {
+    margin-bottom: 0;
+    
+    .el-form-item {
+      margin-bottom: 0;
+      margin-right: @spacing-md;
+      
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+  
+  .el-input {
+    width: 200px;
+    
+    :deep(.el-input__wrapper) {
+      border-radius: @border-radius-medium;
+    }
+  }
+  
+  .el-select {
+    width: 200px;
+  }
+  
+  // 响应式处理
+  @media (max-width: 1024px) {
+    flex-wrap: wrap;
+    gap: @spacing-lg;
+    
+    .el-form {
+      width: 100%;
+    }
+  }
+}
+
+// 独立搜索区域样式
+.search-area {
+  margin-bottom: @spacing-xl;
+  padding: @spacing-xl;
+  background: @bg-white;
+  border-radius: @border-radius-base;
+  border: 1px solid @border-lighter;
+  transition: @transition-base;
+  
+  &:hover {
+    border-color: @border-light;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  }
+  
+  .search-form {
+    .el-form-item {
+      margin-bottom: 0;
+      margin-right: @spacing-lg;
+      
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+    
+    .el-input,
+    .el-select {
+      width: 220px;
+    }
+  }
+  
+  // 响应式处理
+  @media (max-width: 1024px) {
+    .search-form {
+      .el-form-item {
+        margin-bottom: @spacing-md;
+        margin-right: 0;
+        width: 100%;
+        
+        .el-input,
+        .el-select {
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+
+// 表格容器样式
+.table-container {
+  .el-table {
+    border-radius: @border-radius-large;
+    overflow: hidden;
+    
+    :deep(.el-table__header) {
+      th {
+        background-color: @bg-light;
+        font-weight: 600;
+        color: @text-primary;
+        font-size: @font-size-base;
+        padding: 16px 0;
+      }
+    }
+
+    :deep(.el-table__row) {
+      transition: @transition-fast;
+      
+      &:hover {
+        background-color: @bg-hover;
       }
       
-      // 点击后自动恢复透明背景（通过 transition 实现）
-      // 当鼠标离开时，背景自动恢复为 transparent
+      &.selected {
+        border-left: 3px solid @primary-color;
+      }
     }
+
+    :deep(.el-table__cell) {
+      padding: 14px @spacing-md;
+    }
+  }
+}
+
+// 分页组件容器
+.pagination {
+  margin-top: @spacing-xl;
+  padding: @spacing-lg 0;
+  display: flex;
+  justify-content: flex-end;
+  
+  // 响应式处理
+  @media (max-width: 768px) {
+    justify-content: center;
   }
 }

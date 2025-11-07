@@ -148,6 +148,11 @@ onMounted(() => {
     background-color: #f5f5f5 !important;
 }
 
+// 展开后的箭头指向左侧
+:deep(.el-sub-menu.is-opened > .el-sub-menu__title .el-sub-menu__icon-arrow) {
+    transform: rotateZ(90deg) !important;
+}
+
 // 隐藏子菜单分组标题
 :deep(.el-menu-item-group__title) {
     padding: 0;

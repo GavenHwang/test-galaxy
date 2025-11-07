@@ -45,11 +45,6 @@ const routes = [
                 ]
             },
             {
-                path: "user",
-                name: "user",
-                component: () => import('@/views/User.vue'),
-            },
-            {
                 path: "ui-test",
                 name: "ui-test",
                 redirect: "/ui-test/test-users",
@@ -103,6 +98,18 @@ const routes = [
                         path: "test-reports/:id",
                         name: "test-report-detail",
                         component: () => import('@/views/UITest/TestReportDetail.vue'),
+                    }
+                ]
+            },
+            {
+                path: "system",
+                name: "system",
+                redirect: "/system/user",
+                children: [
+                    {
+                        path: "user",
+                        name: "user",
+                        component: () => import('@/views/User.vue'),
                     }
                 ]
             }

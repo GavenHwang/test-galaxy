@@ -107,9 +107,53 @@ async def init_menus():
             ]
         },
         {
-            "path": '/user',
-            "label": '用户管理',
-            "icon": 'user'
+            "path": '/ui-test',
+            "label": 'UI测试',
+            "icon": 'Operation',
+            "children": [
+                {
+                    "path": '/ui-test/test-users',
+                    "label": '测试用户',
+                    "icon": 'User'
+                },
+                {
+                    "path": '/ui-test/elements',
+                    "label": '页面元素',
+                    "icon": 'Grid'
+                },
+                {
+                    "path": '/ui-test/test-cases',
+                    "label": '测试用例',
+                    "icon": 'DocumentCopy'
+                },
+                {
+                    "path": '/ui-test/test-suites',
+                    "label": '测试套件',
+                    "icon": 'FolderOpened'
+                },
+                {
+                    "path": '/ui-test/test-tasks',
+                    "label": '测试单',
+                    "icon": 'List'
+                },
+                {
+                    "path": '/ui-test/test-reports',
+                    "label": '测试报告',
+                    "icon": 'Document'
+                }
+            ]
+        },
+        {
+            "path": '/system',
+            "label": '系统设置',
+            "icon": 'Setting',
+            "children": [
+                {
+                    "path": '/system/user',
+                    "label": '用户管理',
+                    "icon": 'User'
+                }
+            ]
         }
     ]
     await upsert_menu_tree(menu_data)
@@ -119,7 +163,7 @@ async def init_roles():
     """初始化系统角色及菜单权限"""
     # 获取所有菜单项
     all_menus = await Menu.all()
-    user_mgmt_menu = await Menu.get(path="/user")
+    user_mgmt_menu = await Menu.get(path="/system/user")
 
     # 创建或更新superuser角色
     superuser = await get_or_create_role("superuser", "超级管理员")
