@@ -29,7 +29,7 @@
     >
       <el-table-column prop="id" label="报告ID" width="100" />
       <el-table-column prop="test_task_id" label="测试单ID" width="120" />
-      <el-table-column label="执行结果" min-width="450">
+      <el-table-column label="执行结果" min-width="350">
         <template #default="{ row }">
           <div style="display: flex; align-items: center; gap: 10px">
             <el-tag type="success" size="small">通过 {{ row.passed_cases }}</el-tag>

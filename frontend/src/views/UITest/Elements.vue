@@ -82,8 +82,8 @@
           <el-tag size="small">{{ row.selector_type }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="selector_value" label="定位器值" min-width="200" show-overflow-tooltip />
-      <el-table-column prop="page" label="所属页面" width="200" show-overflow-tooltip />
+      <el-table-column prop="selector_value" label="定位器值" min-width="100" show-overflow-tooltip />
+      <el-table-column prop="page" label="所属页面" width="350" show-overflow-tooltip />
       <el-table-column prop="module" label="所属模块" width="120" />
       <el-table-column label="关联用例" width="100" align="center">
         <template #default="{ row }">

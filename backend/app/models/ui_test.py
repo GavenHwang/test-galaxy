@@ -9,8 +9,8 @@ from app.models.base import BaseModel, TimestampMixin
 
 __all__ = [
     'SelectorType', 'ActionType', 'CasePriority', 'CaseStatus', 
-    'TaskStatus', 'TaskContentType', 'ExecutionStatus',
-    'TestCommonUser', 'TestUIElement', 'TestUIElementPermission',
+    'TaskStatus', 'TaskContentType', 'ExecutionStatus', 'ProductStatus',
+    'TestProduct', 'TestCommonUser', 'TestUIElement', 'TestUIElementPermission',
     'TestUICase', 'TestUICasePermission', 'TestUIStep', 'TestUICaseSuite',
     'TestUICasesSuitesRelation', 'TestUITask', 'TestUITaskContent',
     'TestUIReport', 'TestUICaseExecutionRecord', 'TestUICaseStepExecutionRecord'
@@ -90,7 +90,27 @@ class ExecutionStatus(str, Enum):
     INTERRUPTED = "中断"
 
 
+class ProductStatus(str, Enum):
+    """产品状态"""
+    ENABLED = "启用"
+    DISABLED = "禁用"
+
+
 # ==================== 模型定义 ====================
+
+class TestProduct(BaseModel, TimestampMixin):
+    """产品主数据表"""
+    name = fields.CharField(max_length=100, unique=True, description="产品名称")
+    code = fields.CharField(max_length=50, unique=True, null=True, description="产品编码")
+    description = fields.TextField(null=True, description="产品描述")
+    status = fields.CharEnumField(ProductStatus, default=ProductStatus.ENABLED, index=True, description="状态")
+    sort_order = fields.IntField(default=0, index=True, description="排序序号")
+    created_by = fields.CharField(max_length=50, description="创建人")
+
+    class Meta(BaseModel.Meta):
+        table = "test_products"
+        table_description = "产品主数据表"
+        abstract = False
 
 class TestCommonUser(BaseModel, TimestampMixin):
     """测试用户表（被测系统的业务用户）"""
@@ -116,6 +136,7 @@ class TestUIElement(BaseModel, TimestampMixin):
     description = fields.TextField(null=True, description="元素描述")
     page = fields.CharField(max_length=500, index=True, description="所属页面")
     module = fields.CharField(max_length=100, index=True, null=True, description="所属模块")
+    product = fields.CharField(max_length=100, index=True, description="所属产品")
     created_by = fields.CharField(max_length=50, description="创建人")
 
     # 反向关联
@@ -152,6 +173,7 @@ class TestUICase(BaseModel, TimestampMixin):
     description = fields.TextField(null=True, description="用例描述")
     priority = fields.CharEnumField(CasePriority, default=CasePriority.MEDIUM, index=True, description="优先级")
     module = fields.CharField(max_length=100, index=True, null=True, description="所属模块")
+    product = fields.CharField(max_length=100, index=True, description="所属产品")
     tags = fields.JSONField(null=True, description="标签数组")
     status = fields.CharEnumField(CaseStatus, default=CaseStatus.DRAFT, index=True, description="状态")
     precondition = fields.TextField(null=True, description="前置条件")
@@ -221,6 +243,7 @@ class TestUICaseSuite(BaseModel, TimestampMixin):
     """测试套件表"""
     name = fields.CharField(max_length=200, description="套件名称")
     description = fields.TextField(null=True, description="套件描述")
+    product = fields.CharField(max_length=100, index=True, description="所属产品")
     filter_conditions = fields.JSONField(description="筛选条件")
     created_by = fields.CharField(max_length=50, description="创建人")
 
@@ -263,6 +286,7 @@ class TestUITask(BaseModel, TimestampMixin):
     """测试单表"""
     name = fields.CharField(max_length=200, description="测试单名称")
     description = fields.TextField(null=True, description="描述")
+    product = fields.CharField(max_length=100, index=True, description="所属产品")
     environment = fields.CharField(max_length=100, index=True, description="测试环境")
     status = fields.CharEnumField(TaskStatus, default=TaskStatus.PENDING, index=True, description="状态")
     execute_config = fields.JSONField(description="执行配置")
@@ -316,6 +340,7 @@ class TestUIReport(BaseModel, TimestampMixin):
         index=True,
         description="测试单ID"
     )
+    product = fields.CharField(max_length=100, index=True, description="所属产品")
     execution_time = fields.DatetimeField(index=True, description="执行时间")
     total_cases = fields.IntField(default=0, description="总用例数")
     passed_cases = fields.IntField(default=0, description="通过数")

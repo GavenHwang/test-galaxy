@@ -45,15 +45,16 @@ async def create_element(data: UIElementCreateSchema, request: Request):
         current_user = request.state.current_user
         created_by = current_user.get("username", "system") if current_user else "system"
         
-        # 检查同一页面下元素名称是否已存在
+        # 检查同一产品下同一页面的元素名称是否已存在
         exists = await TestUIElement.filter(
             name=data.name,
-            page=data.page
+            page=data.page,
+            product=data.product
         ).exists()
         
         if exists:
             return ResponseSchema.error(
-                msg=f"元素名称'{data.name}'在页面'{data.page}'下已存在",
+                msg=f"元素名称'{data.name}'在产品'{data.product}'的页面'{data.page}'下已存在",
                 code=400
             )
         
@@ -72,6 +73,7 @@ async def create_element(data: UIElementCreateSchema, request: Request):
             selector_value=data.selector_value,
             page=data.page,
             module=data.module,
+            product=data.product,
             description=data.description,
             created_by=created_by
         )
@@ -84,6 +86,7 @@ async def create_element(data: UIElementCreateSchema, request: Request):
             selector_value=element.selector_value,
             page=element.page,
             module=element.module,
+            product=element.product,
             description=element.description,
             created_by=element.created_by,
             created_time=format_datetime(element.created_time),
@@ -105,7 +108,8 @@ async def get_elements(
     name: Optional[str] = Query(None, description="元素名称模糊搜索"),
     page_url: Optional[str] = Query(None, description="所属页面精确匹配", alias="page"),
     module: Optional[str] = Query(None, description="所属模块精确匹配"),
-    selector_type: Optional[str] = Query(None, description="定位器类型精确匹配")
+    selector_type: Optional[str] = Query(None, description="定位器类型精确匹配"),
+    product: Optional[str] = Query(None, description="所属产品精确匹配")
 ):
     """
     分页获取页面元素列表
@@ -115,6 +119,7 @@ async def get_elements(
     - page: 所属页面精确匹配
     - module: 所属模块精确匹配
     - selector_type: 定位器类型精确匹配
+    - product: 所属产品精确匹配
     """
     try:
         # 构建查询条件
@@ -128,6 +133,8 @@ async def get_elements(
             query = query.filter(module=module)
         if selector_type:
             query = query.filter(selector_type=selector_type)
+        if product:
+            query = query.filter(product=product)
         
         # 查询总数
         total = await query.count()
@@ -153,6 +160,7 @@ async def get_elements(
                 selector_value=element.selector_value,
                 page=element.page,
                 module=element.module,
+                product=element.product,
                 description=element.description,
                 created_by=element.created_by,
                 created_time=format_datetime(element.created_time),

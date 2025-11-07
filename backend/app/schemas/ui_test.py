@@ -208,6 +208,7 @@ class TestCaseResponseSchema(BaseResponseSchema):
     description: Optional[str] = None
     priority: str
     module: Optional[str] = None
+    product: str
     tags: Optional[List[str]] = None
     status: str
     precondition: Optional[str] = None
@@ -228,6 +229,7 @@ class TestCaseListParams(PaginationParams):
     status: Optional[str] = Field(None, description="状态")
     tags: Optional[str] = Field(None, description="标签，逗号分隔")
     created_by: Optional[str] = Field(None, description="创建人")
+    product: Optional[str] = Field(None, description="所属产品")
 
 
 class CasePermissionSchema(BaseModel):
@@ -266,6 +268,7 @@ class TestSuiteCreateSchema(BaseModel):
     """创建测试套件请求"""
     name: str = Field(..., min_length=1, max_length=200, description="套件名称")
     description: Optional[str] = Field(None, max_length=2000, description="套件描述")
+    product: str = Field(..., min_length=1, max_length=100, description="所属产品")
     filter_conditions: TestSuiteFilterConditions = Field(..., description="筛选条件")
 
 
@@ -273,6 +276,7 @@ class TestSuiteUpdateSchema(BaseModel):
     """更新测试套件请求"""
     name: Optional[str] = Field(None, min_length=1, max_length=200, description="套件名称")
     description: Optional[str] = Field(None, max_length=2000, description="套件描述")
+    product: Optional[str] = Field(None, min_length=1, max_length=100, description="所属产品")
     filter_conditions: Optional[TestSuiteFilterConditions] = Field(None, description="筛选条件")
 
 
@@ -280,6 +284,7 @@ class TestSuiteResponseSchema(BaseResponseSchema):
     """测试套件响应"""
     name: str
     description: Optional[str] = None
+    product: str
     filter_conditions: Dict[str, Any]
     created_by: str
     case_count: int = 0
@@ -290,6 +295,7 @@ class TestSuiteListParams(PaginationParams):
     """测试套件列表查询参数"""
     name: Optional[str] = Field(None, description="套件名称模糊搜索")
     created_by: Optional[str] = Field(None, description="创建人")
+    product: Optional[str] = Field(None, description="所属产品")
 
 
 class AddCasesToSuiteSchema(BaseModel):
@@ -324,6 +330,7 @@ class TestTaskCreateSchema(BaseModel):
     """创建测试单请求"""
     name: str = Field(..., min_length=1, max_length=200, description="测试单名称")
     description: Optional[str] = Field(None, max_length=2000, description="描述")
+    product: str = Field(..., min_length=1, max_length=100, description="所属产品")
     environment: str = Field(..., min_length=1, max_length=100, description="测试环境")
     execute_config: dict = Field(..., description="执行配置")
     suites: Optional[List[int]] = Field(default=[], description="套件ID列表")
@@ -334,6 +341,7 @@ class TestTaskUpdateSchema(BaseModel):
     """更新测试单请求"""
     name: Optional[str] = Field(None, min_length=1, max_length=200, description="测试单名称")
     description: Optional[str] = Field(None, max_length=2000, description="描述")
+    product: Optional[str] = Field(None, min_length=1, max_length=100, description="所属产品")
     environment: Optional[str] = Field(None, min_length=1, max_length=100, description="测试环境")
     execute_config: Optional[dict] = Field(None, description="执行配置")
     suites: Optional[List[int]] = Field(None, description="套件ID列表")
@@ -344,6 +352,7 @@ class TestTaskResponseSchema(BaseResponseSchema):
     """测试单响应"""
     name: str
     description: Optional[str] = None
+    product: str
     environment: str
     status: str
     execute_config: Dict[str, Any]
@@ -367,6 +376,7 @@ class TestTaskListParams(PaginationParams):
     name: Optional[str] = Field(None, description="测试单名称模糊搜索")
     status: Optional[str] = Field(None, description="状态")
     environment: Optional[str] = Field(None, description="测试环境")
+    product: Optional[str] = Field(None, description="所属产品")
 
 
 # ==================== 测试报告 Schema ====================
@@ -387,6 +397,7 @@ class CaseExecutionRecordSchema(BaseModel):
 class TestReportResponseSchema(BaseResponseSchema):
     """测试报告响应"""
     test_task_id: int
+    product: str
     execution_time: str
     total_cases: int
     passed_cases: int
@@ -403,6 +414,7 @@ class TestReportListParams(PaginationParams):
     test_task_id: Optional[int] = Field(None, description="测试单ID")
     start_date: Optional[str] = Field(None, description="开始日期")
     end_date: Optional[str] = Field(None, description="结束日期")
+    product: Optional[str] = Field(None, description="所属产品")
 
 
 class ReportCompareSchema(BaseModel):

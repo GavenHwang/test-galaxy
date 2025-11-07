@@ -4,6 +4,70 @@
 import request from './request'
 
 /**
+ * 产品管理API
+ */
+
+// 创建产品
+export const createProduct = (data) => {
+  return request({
+    url: '/api/products',
+    method: 'post',
+    data
+  })
+}
+
+// 获取产品列表（分页）
+export const getProductList = (params) => {
+  return request({
+    url: '/api/products',
+    method: 'get',
+    params
+  })
+}
+
+// 获取所有启用的产品（不分页，供下拉选择器使用）
+export const getAllProducts = () => {
+  return request({
+    url: '/api/products/all',
+    method: 'get'
+  })
+}
+
+// 获取单个产品详情
+export const getProductDetail = (productId) => {
+  return request({
+    url: `/api/products/${productId}`,
+    method: 'get'
+  })
+}
+
+// 更新产品
+export const updateProduct = (productId, data) => {
+  return request({
+    url: `/api/products/${productId}`,
+    method: 'put',
+    data
+  })
+}
+
+// 删除产品
+export const deleteProduct = (productId) => {
+  return request({
+    url: `/api/products/${productId}`,
+    method: 'delete'
+  })
+}
+
+// 更新产品状态
+export const updateProductStatus = (productId, status) => {
+  return request({
+    url: `/api/products/${productId}/status`,
+    method: 'patch',
+    data: { status }
+  })
+}
+
+/**
  * 测试用户管理API
  */
 

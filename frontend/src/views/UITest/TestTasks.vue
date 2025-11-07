@@ -59,9 +59,9 @@
       v-loading="loading"
       style="width: 100%"
     >
-      <el-table-column prop="name" label="测试单名称" min-width="300" show-overflow-tooltip />
-      <el-table-column prop="environment" label="测试环境" width="150" />
-      <el-table-column prop="status" label="状态" width="120" align="center">
+      <el-table-column prop="name" label="测试单名称" width="500" show-overflow-tooltip />
+      <el-table-column prop="environment" label="测试环境" width="100" />
+      <el-table-column prop="status" label="状态" width="100" align="center">
         <template #default="{ row }">
           <el-tag 
             :type="getStatusType(row.status)" 
@@ -72,7 +72,7 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="执行进度" width="250" align="center">
+      <el-table-column label="执行进度" width="200" align="center">
         <template #default="{ row }">
           <!-- 待执行状态不显示进度 -->
           <span v-if="row.status === '待执行'" style="color: #909399">-</span>
@@ -102,7 +102,7 @@
       </el-table-column>
       <el-table-column prop="created_by" label="创建人" width="120" />
       <el-table-column prop="created_time" label="创建时间" width="200" />
-      <el-table-column label="操作" width="280" fixed="right" align="center">
+      <el-table-column label="操作" width="320" fixed="right" align="center" >
         <template #default="{ row }">
           <div class="action-buttons">
             <el-tooltip content="查看" placement="top">
