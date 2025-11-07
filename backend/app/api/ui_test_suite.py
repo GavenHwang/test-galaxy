@@ -42,6 +42,7 @@ async def create_test_suite(data: TestSuiteCreateSchema, request: Request):
         suite = await TestUICaseSuite.create(
             name=data.name,
             description=data.description,
+            product=data.product,
             filter_conditions=data.filter_conditions.model_dump() if data.filter_conditions else {},
             created_by=created_by
         )
@@ -50,6 +51,7 @@ async def create_test_suite(data: TestSuiteCreateSchema, request: Request):
             id=suite.id,
             name=suite.name,
             description=suite.description,
+            product=suite.product,
             filter_conditions=suite.filter_conditions,
             created_by=suite.created_by,
             created_time=format_datetime(suite.created_time),
@@ -94,6 +96,7 @@ async def get_test_suites(
                 id=suite.id,
                 name=suite.name,
                 description=suite.description,
+                product=suite.product,
                 filter_conditions=suite.filter_conditions,
                 created_by=suite.created_by,
                 created_time=format_datetime(suite.created_time),
@@ -135,6 +138,7 @@ async def get_test_suite(suite_id: int):
                 "id": rel.test_case.id,
                 "name": rel.test_case.name,
                 "priority": rel.test_case.priority,
+                "product": rel.test_case.product,
                 "status": rel.test_case.status,
                 "sort_order": rel.sort_order
             }
@@ -145,6 +149,7 @@ async def get_test_suite(suite_id: int):
             id=suite.id,
             name=suite.name,
             description=suite.description,
+            product=suite.product,
             filter_conditions=suite.filter_conditions,
             created_by=suite.created_by,
             created_time=format_datetime(suite.created_time),
@@ -182,6 +187,7 @@ async def update_test_suite(suite_id: int, data: TestSuiteUpdateSchema):
             id=suite.id,
             name=suite.name,
             description=suite.description,
+            product=suite.product,
             filter_conditions=suite.filter_conditions,
             created_by=suite.created_by,
             created_time=format_datetime(suite.created_time),
@@ -276,6 +282,7 @@ async def preview_matched_cases(suite_id: int, filter_conditions: dict):
                 "name": case.name,
                 "priority": case.priority,
                 "module": case.module,
+                "product": case.product,
                 "tags": case.tags,
                 "status": case.status
             }
@@ -311,6 +318,7 @@ async def get_suite_cases(suite_id: int):
                 "id": rel.test_case.id,
                 "name": rel.test_case.name,
                 "priority": rel.test_case.priority,
+                "product": rel.test_case.product,
                 "status": rel.test_case.status,
                 "sort_order": rel.sort_order
             }

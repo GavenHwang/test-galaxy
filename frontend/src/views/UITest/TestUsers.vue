@@ -131,47 +131,18 @@
         :rules="formRules"
         label-width="100px"
       >
-        <el-form-item label="用户名" prop="username">
-          <el-input 
-            v-model="formData.username" 
-            placeholder="请输入用户名"
-            maxlength="100"
-            show-word-limit
-          />
-        </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input
-            v-model="formData.password"
-            :type="formPasswordVisible ? 'text' : 'password'"
-            placeholder="请输入密码"
-            maxlength="255"
-            show-word-limit
-          >
-            <template #suffix>
-              <el-icon 
-                @click="formPasswordVisible = !formPasswordVisible"
-                style="cursor: pointer"
-              >
-                <component :is="formPasswordVisible ? View : Hide" />
-              </el-icon>
-            </template>
-          </el-input>
-          <div v-if="isEdit" class="form-tip">不修改密码请留空</div>
-        </el-form-item>
         <el-form-item label="产品" prop="product">
           <el-select
             v-model="formData.product"
-            placeholder="请选择已有产品或直接输入新产品名称"
+            placeholder="请选择产品"
             filterable
-            allow-create
-            default-first-option
             style="width: 100%"
           >
             <el-option
               v-for="item in productOptions"
-              :key="item"
-              :label="item"
-              :value="item"
+              :key="item.name"
+              :label="item.name"
+              :value="item.name"
             />
           </el-select>
         </el-form-item>
@@ -200,6 +171,33 @@
             show-word-limit
           />
         </el-form-item>
+        <el-form-item label="用户名" prop="username">
+          <el-input 
+            v-model="formData.username" 
+            placeholder="请输入用户名"
+            maxlength="100"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input
+            v-model="formData.password"
+            :type="formPasswordVisible ? 'text' : 'password'"
+            placeholder="请输入密码"
+            maxlength="255"
+            show-word-limit
+          >
+            <template #suffix>
+              <el-icon 
+                @click="formPasswordVisible = !formPasswordVisible"
+                style="cursor: pointer"
+              >
+                <component :is="formPasswordVisible ? View : Hide" />
+              </el-icon>
+            </template>
+          </el-input>
+          <div v-if="isEdit" class="form-tip">不修改密码请留空</div>
+        </el-form-item> 
         <el-form-item label="描述" prop="description">
           <el-input
             v-model="formData.description"
@@ -222,7 +220,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, View, Hide, Edit, Delete } from '@element-plus/icons-vue'
 import {
@@ -230,11 +228,13 @@ import {
   createTestUser,
   updateTestUser,
   deleteTestUser,
-  getProducts,
   getRoles,
   getTestUserDetail
 } from '@/api/uitest'
+import { getAllProducts } from '@/api/uitest'
 import { useAutoSearch } from '@/composables/useAutoSearch'
+
+const { proxy } = getCurrentInstance()
 
 // 表格数据
 const tableData = ref([])
@@ -351,7 +351,7 @@ const loadOptions = async () => {
   try {
     // 注意：响应拦截器在 code===200 时直接返回 data，所以这里收到的就是数组
     const [products, roles] = await Promise.all([
-      getProducts(),
+      getAllProducts(),  // 从 test_products 表获取
       getRoles()
     ])
     

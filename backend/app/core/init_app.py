@@ -154,6 +154,11 @@ async def init_menus():
                     "icon": 'User'
                 },
                 {
+                    "path": '/system/products',
+                    "label": '项目管理',
+                    "icon": 'Files'
+                },
+                {
                     "path": '/system/menu-permission',
                     "label": '菜单权限',
                     "icon": 'Lock'

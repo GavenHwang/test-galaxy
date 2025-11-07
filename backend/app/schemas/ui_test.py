@@ -126,6 +126,7 @@ class UIElementCreateSchema(BaseModel):
     description: Optional[str] = Field(None, max_length=1000, description="元素描述")
     page: str = Field(..., min_length=1, max_length=500, description="所属页面")
     module: Optional[str] = Field(None, max_length=100, description="所属模块")
+    product: str = Field(..., min_length=1, max_length=100, description="所属产品")
 
 
 class UIElementUpdateSchema(BaseModel):
@@ -224,6 +225,7 @@ class TestCaseCreateSchema(BaseModel):
     description: Optional[str] = Field(None, max_length=2000, description="用例描述")
     priority: str = Field(default="中", description="优先级")
     module: Optional[str] = Field(None, max_length=100, description="所属模块")
+    product: str = Field(..., min_length=1, max_length=100, description="所属产品")
     tags: Optional[List[str]] = Field(None, description="标签数组")
     status: str = Field(default="草稿", description="状态")
     precondition: Optional[str] = Field(None, max_length=1000, description="前置条件")
@@ -249,7 +251,7 @@ class TestCaseResponseSchema(BaseResponseSchema):
     description: Optional[str] = None
     priority: str
     module: Optional[str] = None
-    product: str
+    product: Optional[str] = None  # 改为可选，兼容旧数据
     tags: Optional[List[str]] = None
     status: str
     precondition: Optional[str] = None
@@ -325,7 +327,7 @@ class TestSuiteResponseSchema(BaseResponseSchema):
     """测试套件响应"""
     name: str
     description: Optional[str] = None
-    product: str
+    product: Optional[str] = None  # 改为可选，兼容旧数据
     filter_conditions: Dict[str, Any]
     created_by: str
     case_count: int = 0
@@ -393,7 +395,7 @@ class TestTaskResponseSchema(BaseResponseSchema):
     """测试单响应"""
     name: str
     description: Optional[str] = None
-    product: str
+    product: Optional[str] = None  # 改为可选，兼容旧数据
     environment: str
     status: str
     execute_config: Dict[str, Any]

@@ -10,7 +10,8 @@ from .ui_test import (
     TestCommonUser, TestUIElement, TestUIElementPermission,
     TestUICase, TestUICasePermission, TestUIStep, TestUICaseSuite,
     TestUICasesSuitesRelation, TestUITask, TestUITaskContent,
-    TestUIReport, TestUICaseExecutionRecord, TestUICaseStepExecutionRecord
+    TestUIReport, TestUICaseExecutionRecord, TestUICaseStepExecutionRecord,
+    TestProduct
 )
 
 __all__ = [
@@ -25,5 +26,6 @@ __all__ = [
     'TestCommonUser', 'TestUIElement', 'TestUIElementPermission',
     'TestUICase', 'TestUICasePermission', 'TestUIStep', 'TestUICaseSuite',
     'TestUICasesSuitesRelation', 'TestUITask', 'TestUITaskContent',
-    'TestUIReport', 'TestUICaseExecutionRecord', 'TestUICaseStepExecutionRecord'
+    'TestUIReport', 'TestUICaseExecutionRecord', 'TestUICaseStepExecutionRecord',
+    'TestProduct'
 ]
