@@ -115,6 +115,11 @@ const routes = [
                         path: "products",
                         name: "products",
                         component: () => import('@/views/Settings/Products.vue'),
+                    },
+                    {
+                        path: "menu-permission",
+                        name: "menu-permission",
+                        component: () => import('@/views/Settings/MenuPermission.vue'),
                     }
                 ]
             }

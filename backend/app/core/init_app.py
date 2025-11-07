@@ -152,6 +152,11 @@ async def init_menus():
                     "path": '/system/user',
                     "label": '用户管理',
                     "icon": 'User'
+                },
+                {
+                    "path": '/system/menu-permission',
+                    "label": '菜单权限',
+                    "icon": 'Lock'
                 }
             ]
         }
@@ -164,6 +169,7 @@ async def init_roles():
     # 获取所有菜单项
     all_menus = await Menu.all()
     user_mgmt_menu = await Menu.get(path="/system/user")
+    menu_permission_menu = await Menu.get(path="/system/menu-permission")
 
     # 创建或更新superuser角色
     superuser = await get_or_create_role("superuser", "超级管理员")
@@ -173,9 +179,9 @@ async def init_roles():
     # 创建或更新common角色
     common = await get_or_create_role("common", "普通用户")
     await common.menus.clear()
-    # 排除用户管理权限
+    # 排除用户管理和菜单权限管理权限
     await common.menus.add(
-        *[m for m in all_menus if m != user_mgmt_menu]
+        *[m for m in all_menus if m not in [user_mgmt_menu, menu_permission_menu]]
     )
 
 

@@ -97,4 +97,33 @@ export default {
             data: data
         })
     },
+    // 菜单权限管理 - 获取角色列表
+    getRoles() {
+        return request({
+            url: "api/menu-permissions/roles",
+            method: "get"
+        })
+    },
+    // 菜单权限管理 - 获取所有菜单树
+    getMenusTree() {
+        return request({
+            url: "api/menu-permissions/menus",
+            method: "get"
+        })
+    },
+    // 菜单权限管理 - 获取角色菜单权限
+    getRoleMenus(roleId) {
+        return request({
+            url: `api/menu-permissions/roles/${roleId}/menus`,
+            method: "get"
+        })
+    },
+    // 菜单权限管理 - 更新角色菜单权限
+    updateRoleMenus(roleId, data) {
+        return request({
+            url: `api/menu-permissions/roles/${roleId}/menus`,
+            method: "put",
+            data: data
+        })
+    },
 }

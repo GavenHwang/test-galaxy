@@ -35,6 +35,47 @@ class PaginatedResponse(BaseModel):
     pages: int
 
 
+# ==================== 产品管理 Schema ====================
+
+class ProductCreateSchema(BaseModel):
+    """创建产品请求"""
+    name: str = Field(..., min_length=1, max_length=100, description="产品名称")
+    code: Optional[str] = Field(None, max_length=50, description="产品编码")
+    status: str = Field(default="ENABLED", description="状态")
+    sort_order: Optional[int] = Field(0, description="排序序号")
+    description: Optional[str] = Field(None, max_length=500, description="描述")
+
+
+class ProductUpdateSchema(BaseModel):
+    """更新产品请求"""
+    name: Optional[str] = Field(None, min_length=1, max_length=100, description="产品名称")
+    code: Optional[str] = Field(None, max_length=50, description="产品编码")
+    status: Optional[str] = Field(None, description="状态")
+    sort_order: Optional[int] = Field(None, description="排序序号")
+    description: Optional[str] = Field(None, max_length=500, description="描述")
+
+
+class ProductResponseSchema(BaseResponseSchema):
+    """产品响应"""
+    name: str
+    code: Optional[str] = None
+    status: str
+    sort_order: int
+    description: Optional[str] = None
+    created_by: str
+
+
+class ProductListParams(PaginationParams):
+    """产品列表查询参数"""
+    name: Optional[str] = Field(None, description="产品名称模糊搜索")
+    status: Optional[str] = Field(None, description="状态")
+
+
+class ProductStatusUpdateSchema(BaseModel):
+    """产品状态更新请求"""
+    status: str = Field(..., description="新状态")
+
+
 # ==================== 测试用户 Schema ====================
 
 class TestUserCreateSchema(BaseModel):
