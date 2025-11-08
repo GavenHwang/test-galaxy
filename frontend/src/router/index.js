@@ -90,6 +90,16 @@ const routes = [
                         component: () => import('@/views/UITest/TestTasks.vue'),
                     },
                     {
+                        path: "test-tasks/new",
+                        name: "test-task-new",
+                        component: () => import('@/views/UITest/TestTaskForm.vue'),
+                    },
+                    {
+                        path: "test-tasks/:id/edit",
+                        name: "test-task-edit",
+                        component: () => import('@/views/UITest/TestTaskForm.vue'),
+                    },
+                    {
                         path: "test-reports",
                         name: "test-reports",
                         component: () => import('@/views/UITest/TestReports.vue'),

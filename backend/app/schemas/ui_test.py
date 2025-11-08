@@ -147,6 +147,7 @@ class UIElementResponseSchema(BaseResponseSchema):
     description: Optional[str] = None
     page: str
     module: Optional[str] = None
+    product: Optional[str] = None  # 所属产品
     created_by: str
     related_cases_count: Optional[int] = 0
     permission_roles: Optional[List[str]] = []

@@ -124,10 +124,11 @@ export const getProducts = () => {
 }
 
 // 获取角色列表
-export const getRoles = () => {
+export const getRoles = (product) => {
   return request({
     url: '/api/ui-test/test-users/roles/list',
-    method: 'get'
+    method: 'get',
+    params: product ? { product } : {}
   })
 }
 

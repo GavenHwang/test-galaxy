@@ -2,33 +2,55 @@
   <div class="page-container">
     <!-- 页面头部 -->
     <div class="page-header">
+      <!-- 第一列：左侧操作按钮 -->
       <div>
         <el-button type="primary" @click="handleCreate">
           <el-icon><Plus /></el-icon>
           新建套件
         </el-button>
       </div>
+      
+      <!-- 第二列：搜索表单 -->
       <el-form :inline="true" :model="searchForm">
-        <el-form-item label="套件名称">
-          <el-input 
-            v-model="searchForm.name" 
-            placeholder="请输入套件名称" 
-            clearable
-            @keyup.enter="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="创建人">
-          <el-input 
-            v-model="searchForm.created_by" 
-            placeholder="请输入创建人" 
-            clearable
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
+        <div class="search-fields-wrapper expanded">
+          <el-form-item label="套件名称">
+            <el-input 
+              v-model="searchForm.name" 
+              placeholder="请输入套件名称" 
+              clearable
+              @keyup.enter="handleSearch"
+            />
+          </el-form-item>
+          <el-form-item label="创建人">
+            <el-input 
+              v-model="searchForm.created_by" 
+              placeholder="请输入创建人" 
+              clearable
+            />
+          </el-form-item>
+          <el-form-item label="所属产品">
+            <el-select 
+              v-model="searchForm.product" 
+              placeholder="请选择产品" 
+              clearable
+              filterable
+            >
+              <el-option 
+                v-for="item in productOptions" 
+                :key="item.name" 
+                :label="item.name" 
+                :value="item.name"
+              />
+            </el-select>
+          </el-form-item>
+        </div>
       </el-form>
+      
+      <!-- 第三列：搜索按钮 -->
+      <div class="search-buttons">
+        <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <el-button @click="handleReset">重置</el-button>
+      </div>
     </div>
 
     <!-- 数据表格 -->
@@ -41,6 +63,7 @@
     >
       <el-table-column prop="name" label="套件名称" width="250" show-overflow-tooltip />
       <el-table-column prop="description" label="描述" show-overflow-tooltip />
+      <el-table-column prop="product" label="所属产品" width="120" />
       <el-table-column prop="case_count" label="用例数量" width="100" align="center" />
       <el-table-column label="筛选条件" width="250">
         <template #default="{ row }">
@@ -264,7 +287,8 @@ import {
   getTestSuiteDetail,
   previewMatchedCases,
   syncSuiteCases,
-  getModules
+  getModules,
+  getAllProducts
 } from '@/api/uitest'
 
 // 表格数据
@@ -277,7 +301,8 @@ const loading = ref(false)
 // 搜索表单
 const searchForm = reactive({
   name: '',
-  created_by: ''
+  created_by: '',
+  product: ''
 })
 
 // 对话框
@@ -314,6 +339,7 @@ const formRules = {
 
 // 选项列表
 const moduleOptions = ref([])
+const productOptions = ref([])
 
 // 筛选条件显示
 const getFilterDisplay = (conditions) => {
@@ -373,6 +399,16 @@ const loadModules = async () => {
   }
 }
 
+// 加载产品选项
+const loadProducts = async () => {
+  try {
+    const products = await getAllProducts()
+    productOptions.value = products || []
+  } catch (error) {
+    console.error('加载产品失败:', error)
+  }
+}
+
 // 搜索
 const handleSearch = () => {
   currentPage.value = 1
@@ -383,6 +419,7 @@ const handleSearch = () => {
 const handleReset = () => {
   searchForm.name = ''
   searchForm.created_by = ''
+  searchForm.product = ''
   currentPage.value = 1
   loadData()
 }
@@ -602,6 +639,7 @@ const handleDialogClose = () => {
 onMounted(() => {
   loadData()
   loadModules()
+  loadProducts()
 })
 </script>
 

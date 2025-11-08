@@ -23,6 +23,27 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
+            <el-form-item label="所属产品" prop="product">
+              <el-select 
+                v-model="formData.product" 
+                placeholder="请选择产品" 
+                filterable
+                :disabled="isView"
+                style="width: 100%"
+              >
+                <el-option 
+                  v-for="item in productOptions" 
+                  :key="item.name" 
+                  :label="item.name" 
+                  :value="item.name"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
             <el-form-item label="所属模块" prop="module">
               <el-select 
                 v-model="formData.module" 
@@ -214,7 +235,8 @@ import {
   getElements,
   createTestStep,
   updateTestStep,
-  deleteTestStep
+  deleteTestStep,
+  getAllProducts
 } from '@/api/uitest'
 
 const route = useRoute()
@@ -239,6 +261,7 @@ const formData = reactive({
   description: '',
   priority: '中',
   module: '',
+  product: '',
   tags: [],
   status: '草稿',
   precondition: '',
@@ -249,6 +272,7 @@ const formData = reactive({
 // 选项数据
 const moduleOptions = ref([])
 const elementOptions = ref([])
+const productOptions = ref([])
 
 // 操作类型选项
 const actionOptions = [
@@ -281,6 +305,9 @@ const formRules = {
   name: [
     { required: true, message: '请输入用例名称', trigger: 'blur' },
     { min: 1, max: 200, message: '长度在1-200个字符', trigger: 'blur' }
+  ],
+  product: [
+    { required: true, message: '请选择产品', trigger: 'change' }
   ],
   priority: [
     { required: true, message: '请选择优先级', trigger: 'change' }
@@ -317,6 +344,7 @@ const loadCaseDetail = async () => {
       description: data.description || '',
       priority: data.priority,
       module: data.module || '',
+      product: data.product || '',
       tags: data.tags || [],
       status: data.status,
       precondition: data.precondition || '',
@@ -331,13 +359,15 @@ const loadCaseDetail = async () => {
 // 加载选项
 const loadOptions = async () => {
   try {
-    const [modules, elementsData] = await Promise.all([
+    const [modules, elementsData, products] = await Promise.all([
       getModules(),
-      getElements({ page: 1, page_size: 1000 })
+      getElements({ page: 1, page_size: 1000 }),
+      getAllProducts()
     ])
     
     moduleOptions.value = modules || []
     elementOptions.value = elementsData.items || []
+    productOptions.value = products || []
   } catch (error) {
     console.error('加载选项失败:', error)
   }

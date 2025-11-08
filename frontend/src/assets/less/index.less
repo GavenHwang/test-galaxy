@@ -624,12 +624,22 @@ a {
 
 // 统一页面头部样式
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  grid-template-columns: auto 1fr auto;  // 三列：左侧按钮(自适应) | 搜索表单(弹性) | 搜索按钮(固定)
+  gap: @spacing-lg;
+  align-items: center;  // 垂直居中对齐
   margin-bottom: @spacing-xl;
   padding-bottom: @spacing-lg;
   border-bottom: 1px solid @border-light;
+  position: relative;  // 为展开按钮提供定位上下文
+  
+  // 左侧操作按钮区域
+  > div:first-child {
+    display: flex;
+    gap: @spacing-md;
+    align-items: center;
+    white-space: nowrap;
+  }
   
   .el-button {
     height: 36px;
@@ -637,21 +647,95 @@ a {
     font-weight: 500;
   }
   
+  // 中间搜索表单区域
   .el-form {
     margin-bottom: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;  // 垂直居中
+    justify-content: flex-end;  // 表单靠右对齐
+    gap: 0;
+    position: relative;
+    
+    // 搜索条件容器
+    .search-fields-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;  // 搜索条件靠右排列
+      align-items: center;  // 垂直居中对齐
+      gap: 0;
+      flex: 1;
+      position: relative;
+      
+      &.collapsed {
+        // 折叠状态下不换行，确保只显示一行
+        flex-wrap: nowrap;
+        overflow: hidden;
+      }
+      
+      &.expanded {
+        // 展开状态允许换行，但第一行居中对齐
+        flex-wrap: wrap;
+        align-content: flex-start;  // 多行内容从顶部开始排列
+      }
+    }
     
     .el-form-item {
-      margin-bottom: 0;
+      margin-bottom: 0;  // 移除底部边距，确保垂直居中
       margin-right: @spacing-md;
+      flex-shrink: 1;
+      min-width: 180px;
       
-      &:last-child {
+      // 折叠状态下只显示前4个表单项，确保只有一行
+      .search-fields-wrapper.collapsed & {
+        &:nth-child(n+5) {  // 第5个及以后的隐藏
+          display: none;
+        }
+      }
+      
+      // 展开状态下，第二行的表单项添加上边距
+      .search-fields-wrapper.expanded & {
+        &:nth-child(n+5) {
+          margin-top: @spacing-md;
+        }
+      }
+      
+      &:not(.search-buttons):last-child {
         margin-right: 0;
+      }
+    }
+  }
+  
+  // 右侧搜索按钮区域
+  .search-buttons {
+    display: flex;
+    gap: @spacing-sm;
+    white-space: nowrap;
+    margin-bottom: 0 !important;
+    margin-right: 0 !important;
+    flex-shrink: 0 !important;
+    align-items: center;  // 垂直居中
+    
+    // 展开按钮样式 - 继续调窄
+    .el-button--text {
+      padding: 8px 2px;  // 左右padding进一步减小到2px
+      min-width: auto;
+      margin: 0;
+    }
+    
+    // 展开按钮的图标旋转
+    .el-icon {
+      transition: transform 0.3s ease;
+      
+      &.rotated {
+        transform: rotate(180deg);
       }
     }
   }
   
   .el-input {
     width: 200px;
+    min-width: 160px;
     
     :deep(.el-input__wrapper) {
       border-radius: @border-radius-medium;
@@ -660,14 +744,27 @@ a {
   
   .el-select {
     width: 200px;
+    min-width: 160px;
   }
   
   // 响应式处理
-  @media (max-width: 1024px) {
-    flex-wrap: wrap;
-    gap: @spacing-lg;
+  @media (max-width: 1400px) {
+    grid-template-columns: 1fr;  // 小屏幕改为单列布局
+    
+    > div:first-child {
+      justify-content: flex-start;
+    }
     
     .el-form {
+      justify-content: flex-start;  // 小屏幕时表单改为左对齐
+      
+      .search-fields-wrapper {
+        justify-content: flex-start;
+      }
+    }
+    
+    .search-buttons {
+      justify-content: flex-end;
       width: 100%;
     }
   }

@@ -2,70 +2,101 @@
   <div class="page-container">
     <!-- 页面头部 -->
     <div class="page-header">
+      <!-- 第一列：左侧操作按钮 -->
       <div>
         <el-button type="primary" @click="handleCreate">
           <el-icon><Plus /></el-icon>
           新建元素
         </el-button>
       </div>
+      
+      <!-- 第二列：搜索表单 -->
       <el-form :inline="true" :model="searchForm">
-        <el-form-item label="元素名称">
-          <el-input 
-            v-model="searchForm.name" 
-            placeholder="请输入元素名称" 
-            clearable
-            @keyup.enter="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="所属页面">
-          <el-select 
-            v-model="searchForm.page" 
-            placeholder="请选择页面" 
-            clearable
-            filterable
-          >
-            <el-option 
-              v-for="item in pageOptions" 
-              :key="item" 
-              :label="item" 
-              :value="item"
+        <div ref="searchFieldsWrapper" :class="['search-fields-wrapper', searchExpanded ? 'expanded' : 'collapsed']" >
+          <el-form-item label="元素名称">
+            <el-input 
+              v-model="searchForm.name" 
+              placeholder="请输入元素名称" 
+              clearable
+              @keyup.enter="handleSearch"
             />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="所属模块">
-          <el-select 
-            v-model="searchForm.module" 
-            placeholder="请选择模块" 
-            clearable
-            filterable
-          >
-            <el-option 
-              v-for="item in moduleOptions" 
-              :key="item" 
-              :label="item" 
-              :value="item"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="定位器类型">
-          <el-select 
-            v-model="searchForm.selector_type" 
-            placeholder="请选择类型" 
-            clearable
-          >
-            <el-option 
-              v-for="item in selectorTypeOptions" 
-              :key="item.value" 
-              :label="item.label" 
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
+          </el-form-item>
+          <el-form-item label="所属页面">
+            <el-select 
+              v-model="searchForm.page" 
+              placeholder="请选择页面" 
+              clearable
+              filterable
+            >
+              <el-option 
+                v-for="item in pageOptions" 
+                :key="item" 
+                :label="item" 
+                :value="item"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="所属模块">
+            <el-select 
+              v-model="searchForm.module" 
+              placeholder="请选择模块" 
+              clearable
+              filterable
+            >
+              <el-option 
+                v-for="item in moduleOptions" 
+                :key="item" 
+                :label="item" 
+                :value="item"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="所属产品">
+            <el-select 
+              v-model="searchForm.product" 
+              placeholder="请选择产品" 
+              clearable
+              filterable
+            >
+              <el-option 
+                v-for="item in productOptions" 
+                :key="item.name" 
+                :label="item.name" 
+                :value="item.name"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="定位器类型">
+            <el-select 
+              v-model="searchForm.selector_type" 
+              placeholder="请选择类型" 
+              clearable
+            >
+              <el-option 
+                v-for="item in selectorTypeOptions" 
+                :key="item.value" 
+                :label="item.label" 
+                :value="item.value"
+              />
+            </el-select>
+          </el-form-item>
+        </div>
       </el-form>
+      
+      <!-- 第三列：搜索按钮 -->
+      <div class="search-buttons">
+        <!-- 展开/收起按钮 -->
+        <el-button 
+          v-if="showToggleButton" 
+          @click="searchExpanded = !searchExpanded"
+          text
+          :title="searchExpanded ? '收起' : '展开'"
+        >
+          <el-icon :class="{ 'rotated': searchExpanded }"><ArrowDown /></el-icon>
+        </el-button>
+        <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <el-button @click="handleReset">重置</el-button>
+      </div>
     </div>
 
     <!-- 数据表格 -->
@@ -85,6 +116,7 @@
       <el-table-column prop="selector_value" label="定位器值" min-width="100" show-overflow-tooltip />
       <el-table-column prop="page" label="所属页面" width="350" show-overflow-tooltip />
       <el-table-column prop="module" label="所属模块" width="120" />
+      <el-table-column prop="product" label="所属产品" width="120" />
       <el-table-column label="关联用例" width="100" align="center">
         <template #default="{ row }">
           <el-button 
@@ -166,6 +198,21 @@
         :rules="formRules"
         label-width="100px"
       >
+        <el-form-item label="产品" prop="product">
+          <el-select
+            v-model="formData.product"
+            placeholder="请选择产品"
+            filterable
+            style="width: 100%"
+          >
+            <el-option
+              v-for="item in productOptions"
+              :key="item.name"
+              :label="item.name"
+              :value="item.name"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="元素名称" prop="name">
           <el-input 
             v-model="formData.name" 
@@ -309,9 +356,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Edit, Delete, Lock, CopyDocument } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, Lock, CopyDocument, ArrowDown } from '@element-plus/icons-vue'
 import {
   getElements,
   createElement,
@@ -322,9 +369,20 @@ import {
   getElementPermissions,
   setElementPermissions,
   getElementRelatedCases,
-  getRoles
+  getRoles,
+  getAllProducts
 } from '@/api/uitest'
 import { useAutoSearch } from '@/composables/useAutoSearch'
+
+// 搜索表单展开/收起状态
+const searchExpanded = ref(false)  // 默认折叠，只显示一行
+const searchFieldsWrapper = ref(null)
+
+// 根据搜索框数量判断是否显示展开按钮（超过4个就显示）
+const showToggleButton = computed(() => {
+  // 页面元素有5个搜索条件，超过4个，显示展开按钮
+  return 5 > 4
+})
 
 // 定位器类型选项
 const selectorTypeOptions = [
@@ -351,12 +409,14 @@ const searchForm = reactive({
   name: '',
   page: '',
   module: '',
+  product: '',
   selector_type: ''
 })
 
 // 选项列表
 const pageOptions = ref([])
 const moduleOptions = ref([])
+const productOptions = ref([])
 
 // 对话框相关
 const dialogVisible = ref(false)
@@ -368,6 +428,7 @@ const submitLoading = ref(false)
 
 // 表单数据
 const formData = reactive({
+  product: '',
   name: '',
   selector_type: '',
   selector_value: '',
@@ -378,6 +439,9 @@ const formData = reactive({
 
 // 表单验证规则
 const formRules = {
+  product: [
+    { required: true, message: '请选择产品', trigger: 'change' }
+  ],
   name: [
     { required: true, message: '请输入元素名称', trigger: 'blur' },
     { min: 1, max: 100, message: '长度在1-100个字符', trigger: 'blur' }
@@ -443,13 +507,15 @@ const loadData = async () => {
 // 加载选项
 const loadOptions = async () => {
   try {
-    const [pages, modules] = await Promise.all([
+    const [pages, modules, products] = await Promise.all([
       getPages(),
-      getModules()
+      getModules(),
+      getAllProducts()
     ])
     
     pageOptions.value = pages || []
     moduleOptions.value = modules || []
+    productOptions.value = products || []
   } catch (error) {
     console.error('加载选项失败:', error)
   }
@@ -466,6 +532,7 @@ const handleReset = () => {
   searchForm.name = ''
   searchForm.page = ''
   searchForm.module = ''
+  searchForm.product = ''
   searchForm.selector_type = ''
   currentPage.value = 1
   loadData()
@@ -500,6 +567,7 @@ const handleEdit = (row) => {
   
   // 深拷贝数据
   Object.assign(formData, {
+    product: row.product || '',
     name: row.name,
     selector_type: row.selector_type,
     selector_value: row.selector_value,
@@ -520,6 +588,7 @@ const handleCopy = (row) => {
   
   // 复制数据，名称加上 "_副本" 后缀
   Object.assign(formData, {
+    product: row.product || '',
     name: row.name + '_副本',
     selector_type: row.selector_type,
     selector_value: row.selector_value,
@@ -636,6 +705,7 @@ const handleSubmit = async () => {
 
 // 重置表单
 const resetForm = () => {
+  formData.product = ''
   formData.name = ''
   formData.selector_type = ''
   formData.selector_value = ''
@@ -664,9 +734,9 @@ useAutoSearch({
   searchForm,
   currentPage,
   onSearch: loadData,
-  inputFields: ['name'],                           // 输入框字段（防抖搜索）
-  selectFields: ['page', 'module', 'selector_type'], // 下拉框字段（立即搜索）
-  debounceDelay: 500                               // 防抖延迟 0.5秒
+  inputFields: ['name'],                                    // 输入框字段（防抖搜索）
+  selectFields: ['page', 'module', 'product', 'selector_type'], // 下拉框字段（立即搜索）
+  debounceDelay: 500                                        // 防抖延迟 0.5秒
 })
 </script>
 

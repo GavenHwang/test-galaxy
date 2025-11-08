@@ -30,17 +30,15 @@
                         <component class="icons" :is="item.icon"></component>
                         <span>{{ item.label }}</span>
                     </template>
-                    <el-menu-item-group>
-                        <el-menu-item 
-                            v-for="subItem in item.children"
-                            :key="subItem.path"
-                            :index="subItem.path"
-                            @click="handleMenu(subItem)"
-                        >
-                            <component class="icons" :is="subItem.icon"></component>
-                            <span>{{ subItem.label }}</span>
-                        </el-menu-item>
-                    </el-menu-item-group>
+                    <el-menu-item 
+                        v-for="subItem in item.children"
+                        :key="subItem.path"
+                        :index="subItem.path"
+                        @click="handleMenu(subItem)"
+                    >
+                        <component class="icons" :is="subItem.icon"></component>
+                        <span>{{ subItem.label }}</span>
+                    </el-menu-item>
                 </el-sub-menu>
             </template>
         </el-menu>
@@ -151,14 +149,6 @@ onMounted(() => {
 // 展开后的箭头指向左侧
 :deep(.el-sub-menu.is-opened > .el-sub-menu__title .el-sub-menu__icon-arrow) {
     transform: rotateZ(90deg) !important;
-}
-
-// 隐藏子菜单分组标题
-:deep(.el-menu-item-group__title) {
-    padding: 0;
-    height: 0;
-    line-height: 0;
-    overflow: hidden;
 }
 
 // 二级菜单项样式（增加缩进）

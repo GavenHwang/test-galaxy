@@ -104,7 +104,7 @@ async def create_element(data: UIElementCreateSchema, request: Request):
 @router.get("", summary="获取页面元素列表")
 async def get_elements(
     page: int = Query(1, ge=1, description="页码"),
-    page_size: int = Query(20, ge=1, le=100, description="每页条数"),
+    page_size: int = Query(20, ge=1, le=1000, description="每页条数"),
     name: Optional[str] = Query(None, description="元素名称模糊搜索"),
     page_url: Optional[str] = Query(None, description="所属页面精确匹配", alias="page"),
     module: Optional[str] = Query(None, description="所属模块精确匹配"),
@@ -211,6 +211,7 @@ async def get_element(element_id: int):
             selector_value=element.selector_value,
             page=element.page,
             module=element.module,
+            product=element.product,
             description=element.description,
             created_by=element.created_by,
             created_time=format_datetime(element.created_time),
@@ -291,6 +292,7 @@ async def update_element(element_id: int, data: UIElementUpdateSchema):
             selector_value=element.selector_value,
             page=element.page,
             module=element.module,
+            product=element.product,
             description=element.description,
             created_by=element.created_by,
             created_time=format_datetime(element.created_time),

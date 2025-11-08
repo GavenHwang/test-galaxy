@@ -2,53 +2,84 @@
   <div class="page-container">
     <!-- 页面头部 -->
     <div class="page-header">
+      <!-- 第一列：左侧操作按钮 -->
       <div>
         <el-button type="primary" @click="handleCreate">
           <el-icon><Plus /></el-icon>
           新建测试单
         </el-button>
       </div>
+      
+      <!-- 第二列：搜索表单 -->
       <el-form :inline="true" :model="searchForm">
-        <el-form-item label="测试单名称">
-          <el-input 
-            v-model="searchForm.name" 
-            placeholder="请输入测试单名称" 
-            clearable
-            @keyup.enter="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select 
-            v-model="searchForm.status" 
-            placeholder="请选择状态" 
-            clearable
-          >
-            <el-option label="待执行" value="PENDING" />
-            <el-option label="执行中" value="RUNNING" />
-            <el-option label="已完成" value="COMPLETED" />
-            <el-option label="已失败" value="FAILED" />
-            <el-option label="已取消" value="CANCELLED" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="环境">
-          <el-input 
-            v-model="searchForm.environment" 
-            placeholder="请输入环境" 
-            clearable
-          />
-        </el-form-item>
-        <el-form-item label="创建人">
-          <el-input 
-            v-model="searchForm.created_by" 
-            placeholder="请输入创建人" 
-            clearable
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
+        <div ref="searchFieldsWrapper" :class="['search-fields-wrapper', searchExpanded ? 'expanded' : 'collapsed']" >
+          <el-form-item label="测试单名称">
+            <el-input 
+              v-model="searchForm.name" 
+              placeholder="请输入测试单名称" 
+              clearable
+              @keyup.enter="handleSearch"
+            />
+          </el-form-item>
+          <el-form-item label="所属产品">
+            <el-select 
+              v-model="searchForm.product" 
+              placeholder="请选择产品" 
+              clearable
+              filterable
+            >
+              <el-option 
+                v-for="item in productOptions" 
+                :key="item.name" 
+                :label="item.name" 
+                :value="item.name"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="状态">
+            <el-select 
+              v-model="searchForm.status" 
+              placeholder="请选择状态" 
+              clearable
+            >
+              <el-option label="待执行" value="PENDING" />
+              <el-option label="执行中" value="RUNNING" />
+              <el-option label="已完成" value="COMPLETED" />
+              <el-option label="已失败" value="FAILED" />
+              <el-option label="已取消" value="CANCELLED" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="环境">
+            <el-input 
+              v-model="searchForm.environment" 
+              placeholder="请输入环境" 
+              clearable
+            />
+          </el-form-item>
+          <el-form-item label="创建人">
+            <el-input 
+              v-model="searchForm.created_by" 
+              placeholder="请输入创建人" 
+              clearable
+            />
+          </el-form-item>
+        </div>
       </el-form>
+      
+      <!-- 第三列：搜索按钮 -->
+      <div class="search-buttons">
+        <!-- 展开/收起按钮 -->
+        <el-button 
+          v-if="showToggleButton" 
+          @click="searchExpanded = !searchExpanded"
+          text
+          :title="searchExpanded ? '收起' : '展开'"
+        >
+          <el-icon :class="{ 'rotated': searchExpanded }"><ArrowDown /></el-icon>
+        </el-button>
+        <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <el-button @click="handleReset">重置</el-button>
+      </div>
     </div>
 
     <!-- 数据表格 -->
@@ -60,6 +91,7 @@
       style="width: 100%"
     >
       <el-table-column prop="name" label="测试单名称" width="500" show-overflow-tooltip />
+      <el-table-column prop="product" label="所属产品" width="120" />
       <el-table-column prop="environment" label="测试环境" width="100" />
       <el-table-column prop="status" label="状态" width="100" align="center">
         <template #default="{ row }">
@@ -205,141 +237,6 @@
       />
     </div>
 
-    <!-- 创建/编辑测试单对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="dialogTitle"
-      width="900px"
-      @close="handleDialogClose"
-    >
-      <el-steps :active="currentStep" finish-status="success" align-center style="margin-bottom: 30px">
-        <el-step title="基本信息" />
-        <el-step title="执行配置" />
-        <el-step title="选择测试内容" />
-        <el-step title="确认提交" />
-      </el-steps>
-
-      <!-- 步骤1: 基本信息 -->
-      <div v-show="currentStep === 0">
-        <el-form :model="formData" :rules="formRules" ref="formRef" label-width="100px">
-          <el-form-item label="测试单名称" prop="name">
-            <el-input v-model="formData.name" placeholder="请输入测试单名称" />
-          </el-form-item>
-          <el-form-item label="测试单描述" prop="description">
-            <el-input 
-              v-model="formData.description" 
-              type="textarea" 
-              :rows="3"
-              placeholder="请输入测试单描述" 
-            />
-          </el-form-item>
-          <el-form-item label="测试环境" prop="environment">
-            <el-input v-model="formData.environment" placeholder="请输入测试环境，如：测试环境、预生产环境" />
-          </el-form-item>
-        </el-form>
-      </div>
-
-      <!-- 步骤2: 执行配置 -->
-      <div v-show="currentStep === 1">
-        <el-form :model="formData.execute_config" label-width="120px">
-          <el-form-item label="失败停止">
-            <el-switch v-model="formData.execute_config.stop_on_failure" />
-            <span style="margin-left: 10px; color: #909399; font-size: 12px">
-              开启后，遇到用例失败将停止执行
-            </span>
-          </el-form-item>
-          <el-form-item label="失败重试">
-            <el-switch v-model="formData.execute_config.retry_on_failure" />
-            <span style="margin-left: 10px; color: #909399; font-size: 12px">
-              开启后，失败的用例将自动重试
-            </span>
-          </el-form-item>
-          <el-form-item label="重试次数" v-if="formData.execute_config.retry_on_failure">
-            <el-input-number 
-              v-model="formData.execute_config.max_retry_times" 
-              :min="1" 
-              :max="5"
-            />
-          </el-form-item>
-          <el-form-item label="执行超时">
-            <el-input-number 
-              v-model="formData.execute_config.timeout" 
-              :min="60" 
-              :max="3600"
-            />
-            <span style="margin-left: 10px; color: #909399; font-size: 12px">
-              秒
-            </span>
-          </el-form-item>
-          <el-form-item label="并发执行">
-            <el-switch v-model="formData.execute_config.parallel" />
-            <span style="margin-left: 10px; color: #909399; font-size: 12px">
-              开启后，用例将并发执行
-            </span>
-          </el-form-item>
-          <el-form-item label="并发数" v-if="formData.execute_config.parallel">
-            <el-input-number 
-              v-model="formData.execute_config.parallel_count" 
-              :min="1" 
-              :max="10"
-            />
-          </el-form-item>
-        </el-form>
-      </div>
-
-      <!-- 步骤3: 选择测试内容 -->
-      <div v-show="currentStep === 2">
-        <el-tabs v-model="contentTab">
-          <el-tab-pane label="按套件选择" name="suite">
-            <el-transfer
-              v-model="selectedSuites"
-              :data="availableSuites"
-              :titles="['可用套件', '已选套件']"
-              :props="{ key: 'id', label: 'name' }"
-              filterable
-              filter-placeholder="请输入套件名称"
-            />
-          </el-tab-pane>
-          <el-tab-pane label="按用例选择" name="case">
-            <el-transfer
-              v-model="selectedCases"
-              :data="availableCases"
-              :titles="['可用用例', '已选用例']"
-              :props="{ key: 'id', label: 'name' }"
-              filterable
-              filter-placeholder="请输入用例名称"
-            />
-          </el-tab-pane>
-        </el-tabs>
-      </div>
-
-      <!-- 步骤4: 确认提交 -->
-      <div v-show="currentStep === 3">
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="测试单名称">{{ formData.name }}</el-descriptions-item>
-          <el-descriptions-item label="测试环境">{{ formData.environment }}</el-descriptions-item>
-          <el-descriptions-item label="失败停止">{{ formData.execute_config.stop_on_failure ? '是' : '否' }}</el-descriptions-item>
-          <el-descriptions-item label="失败重试">{{ formData.execute_config.retry_on_failure ? '是' : '否' }}</el-descriptions-item>
-          <el-descriptions-item label="并发执行">{{ formData.execute_config.parallel ? '是' : '否' }}</el-descriptions-item>
-          <el-descriptions-item label="执行超时">{{ formData.execute_config.timeout }}秒</el-descriptions-item>
-          <el-descriptions-item label="选择套件数">{{ selectedSuites.length }}个</el-descriptions-item>
-          <el-descriptions-item label="选择用例数">{{ selectedCases.length }}个</el-descriptions-item>
-          <el-descriptions-item label="描述" :span="2">{{ formData.description || '无' }}</el-descriptions-item>
-        </el-descriptions>
-      </div>
-
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button @click="handlePrevStep" v-if="currentStep > 0">上一步</el-button>
-          <el-button type="primary" @click="handleNextStep" v-if="currentStep < 3">下一步</el-button>
-          <el-button type="primary" @click="handleSubmit" :loading="submitting" v-if="currentStep === 3">
-            提交
-          </el-button>
-        </span>
-      </template>
-    </el-dialog>
-
     <!-- 查看测试单详情对话框 -->
     <el-dialog
       v-model="viewDialogVisible"
@@ -412,13 +309,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch, nextTick, onUnmounted } from 'vue'
+import { ref, reactive, onMounted, watch, nextTick, onUnmounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, View, Edit, Delete, VideoPlay, VideoPause, RefreshRight, CircleClose, Document, Loading, CircleCheck } from '@element-plus/icons-vue'
+import { Plus, View, Edit, Delete, VideoPlay, VideoPause, RefreshRight, CircleClose, Document, Loading, CircleCheck, ArrowDown } from '@element-plus/icons-vue'
 import { 
   getTestTasks,
-  createTestTask,
-  updateTestTask,
   deleteTestTask,
   getTestTaskDetail,
   executeTestTask,
@@ -427,10 +323,21 @@ import {
   resumeTestTask,
   restartTestTask,
   getTestTaskLog,
-  getTestSuites,
-  getTestCases
+  getAllProducts
 } from '@/api/uitest'
 import { useAutoSearch } from '@/composables/useAutoSearch'
+
+const router = useRouter()
+
+// 搜索表单展开/收起状态
+const searchExpanded = ref(false)  // 默认折叠，只显示一行
+const searchFieldsWrapper = ref(null)
+
+// 根据搜索框数量判断是否显示展开按钮（超过4个就显示）
+const showToggleButton = computed(() => {
+  // 测试单有5个搜索条件，超过4个，显示展开按钮
+  return 5 > 4
+})
 
 // 表格数据
 const tableData = ref([])
@@ -442,19 +349,14 @@ const loading = ref(false)
 // 搜索表单
 const searchForm = reactive({
   name: '',
+  product: '',
   status: '',
   environment: '',
   created_by: ''
 })
 
-// 对话框
-const dialogVisible = ref(false)
-const dialogTitle = ref('新建测试单')
-const formRef = ref(null)
-const submitting = ref(false)
-const editingId = ref(null)
-const currentStep = ref(0)
-const contentTab = ref('suite')
+// 选项数据
+const productOptions = ref([])
 
 // 查看详情对话框
 const viewDialogVisible = ref(false)
@@ -468,37 +370,6 @@ const logTimer = ref(null)
 const currentLogTaskId = ref(null)
 const isLogComplete = ref(false)
 const logContainer = ref(null)
-
-// 表单数据
-const formData = reactive({
-  name: '',
-  description: '',
-  environment: '',
-  execute_config: {
-    stop_on_failure: false,
-    retry_on_failure: false,
-    max_retry_times: 3,
-    timeout: 300,
-    parallel: false,
-    parallel_count: 3
-  }
-})
-
-// 测试内容选择
-const selectedSuites = ref([])
-const selectedCases = ref([])
-const availableSuites = ref([])
-const availableCases = ref([])
-
-// 表单验证规则
-const formRules = {
-  name: [
-    { required: true, message: '请输入测试单名称', trigger: 'blur' }
-  ],
-  environment: [
-    { required: true, message: '请输入测试环境', trigger: 'blur' }
-  ]
-}
 
 // 获取状态类型
 const getStatusType = (status) => {
@@ -573,24 +444,13 @@ const loadData = async () => {
   }
 }
 
-// 加载可用套件和用例
-const loadAvailableContent = async () => {
+// 加载产品选项
+const loadProducts = async () => {
   try {
-    // 加载套件
-    const suiteData = await getTestSuites({ page: 1, page_size: 1000 })
-    availableSuites.value = suiteData.items.map(item => ({
-      id: item.id,
-      name: item.name
-    }))
-    
-    // 加载用例
-    const caseData = await getTestCases({ page: 1, page_size: 1000, status: '激活' })
-    availableCases.value = caseData.items.map(item => ({
-      id: item.id,
-      name: item.name
-    }))
+    const products = await getAllProducts()
+    productOptions.value = products || []
   } catch (error) {
-    console.error('加载可用内容失败:', error)
+    console.error('加载产品失败:', error)
   }
 }
 
@@ -603,6 +463,7 @@ const handleSearch = () => {
 // 重置
 const handleReset = () => {
   searchForm.name = ''
+  searchForm.product = ''
   searchForm.status = ''
   searchForm.environment = ''
   searchForm.created_by = ''
@@ -624,12 +485,7 @@ const handleCurrentChange = (val) => {
 
 // 新建测试单
 const handleCreate = () => {
-  editingId.value = null
-  dialogTitle.value = '新建测试单'
-  currentStep.value = 0
-  resetForm()
-  loadAvailableContent()
-  dialogVisible.value = true
+  router.push('/ui-test/test-tasks/new')
 }
 
 // 查看测试单
@@ -644,34 +500,8 @@ const handleView = async (row) => {
 }
 
 // 编辑测试单
-const handleEdit = async (row) => {
-  editingId.value = row.id
-  dialogTitle.value = '编辑测试单'
-  currentStep.value = 0
-  
-  try {
-    const task = await getTestTaskDetail(row.id)
-    formData.name = task.name
-    formData.description = task.description
-    formData.environment = task.environment
-    formData.execute_config = task.execute_config || {
-      stop_on_failure: false,
-      retry_on_failure: false,
-      max_retry_times: 3,
-      timeout: 300,
-      parallel: false,
-      parallel_count: 3
-    }
-    
-    // 加载已选择的套件和用例
-    selectedSuites.value = task.suites || []
-    selectedCases.value = task.cases || []
-    
-    await loadAvailableContent()
-    dialogVisible.value = true
-  } catch (error) {
-    console.error('获取测试单信息失败:', error)
-  }
+const handleEdit = (row) => {
+  router.push(`/ui-test/test-tasks/${row.id}/edit`)
 }
 
 // 执行测试单
@@ -866,92 +696,13 @@ onUnmounted(() => {
   stopLogPolling()
 })
 
-// 步骤导航
-const handleNextStep = async () => {
-  if (currentStep.value === 0) {
-    // 验证基本信息
-    if (!formRef.value) return
-    await formRef.value.validate((valid) => {
-      if (valid) {
-        currentStep.value++
-      }
-    })
-  } else {
-    currentStep.value++
-  }
-}
-
-const handlePrevStep = () => {
-  currentStep.value--
-}
-
-// 提交表单
-const handleSubmit = async () => {
-  submitting.value = true
-  try {
-    const data = {
-      name: formData.name,
-      description: formData.description,
-      environment: formData.environment,
-      execute_config: formData.execute_config,
-      suites: selectedSuites.value,
-      cases: selectedCases.value
-    }
-    
-    if (editingId.value) {
-      await updateTestTask(editingId.value, data)
-    } else {
-      await createTestTask(data)
-    }
-    
-    ElMessage.success(editingId.value ? '更新成功' : '创建成功')
-    dialogVisible.value = false
-    loadData()
-  } catch (error) {
-    console.error('提交失败:', error)
-  } finally {
-    submitting.value = false
-  }
-}
-
-// 重置表单
-const resetForm = () => {
-  formData.name = ''
-  formData.description = ''
-  formData.environment = ''
-  formData.execute_config = {
-    stop_on_failure: false,
-    retry_on_failure: false,
-    max_retry_times: 3,
-    timeout: 300,
-    parallel: false,
-    parallel_count: 3
-  }
-  selectedSuites.value = []
-  selectedCases.value = []
-  if (formRef.value) {
-    formRef.value.resetFields()
-  }
-}
-
-// 对话框关闭
-const handleDialogClose = () => {
-  currentStep.value = 0
-  resetForm()
-}
-
-// 页面加载
-onMounted(() => {
-  loadData()
-})
-
 // 配置自动搜索
 useAutoSearch({
   searchForm,
   currentPage,
   onSearch: loadData,
   inputFields: ['name', 'environment', 'created_by'], // 输入框字段（防抖搜索）
-  selectFields: ['status'],                           // 下拉框字段（立即搜索）
+  selectFields: ['product', 'status'],                 // 下拉框字段（立即搜索）
   debounceDelay: 500                                  // 防抖延迟 0.5秒
 })
 </script>

@@ -2,12 +2,13 @@
   <div class="page-container">
     <!-- 页面头部 -->
     <div class="page-header">
+      <!-- 第一列：左侧操作按钮 -->
       <div>
         <el-button type="primary" @click="handleCreate">
           <el-icon><Plus /></el-icon>
           新建用例
         </el-button>
-        <el-dropdown @command="handleBatchCommand" style="margin-left: 10px">
+        <el-dropdown @command="handleBatchCommand">
           <el-button>
             批量操作<el-icon class="el-icon--right"><ArrowDown /></el-icon>
           </el-button>
@@ -20,58 +21,88 @@
           </template>
         </el-dropdown>
       </div>
+      
+      <!-- 第二列：搜索表单 -->
       <el-form :inline="true" :model="searchForm">
-        <el-form-item label="用例名称">
-          <el-input 
-            v-model="searchForm.name" 
-            placeholder="请输入用例名称" 
-            clearable
-            @keyup.enter="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="所属模块">
-          <el-select 
-            v-model="searchForm.module" 
-            placeholder="请选择模块" 
-            clearable
-            filterable
-          >
-            <el-option 
-              v-for="item in moduleOptions" 
-              :key="item" 
-              :label="item" 
-              :value="item"
+        <div ref="searchFieldsWrapper" :class="['search-fields-wrapper', searchExpanded ? 'expanded' : 'collapsed']" >
+          <el-form-item label="用例名称">
+            <el-input 
+              v-model="searchForm.name" 
+              placeholder="请输入用例名称" 
+              clearable
+              @keyup.enter="handleSearch"
             />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="优先级">
-          <el-select 
-            v-model="searchForm.priority" 
-            placeholder="请选择优先级" 
-            clearable
-          >
-            <el-option label="高" value="高" />
-            <el-option label="中" value="中" />
-            <el-option label="低" value="低" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select 
-            v-model="searchForm.status" 
-            placeholder="请选择状态" 
-            clearable
-          >
-            <el-option label="草稿" value="草稿" />
-            <el-option label="激活" value="激活" />
-            <el-option label="禁用" value="禁用" />
-            <el-option label="归档" value="归档" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
+          </el-form-item>
+          <el-form-item label="所属模块">
+            <el-select 
+              v-model="searchForm.module" 
+              placeholder="请选择模块" 
+              clearable
+              filterable
+            >
+              <el-option 
+                v-for="item in moduleOptions" 
+                :key="item" 
+                :label="item" 
+                :value="item"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="所属产品">
+            <el-select 
+              v-model="searchForm.product" 
+              placeholder="请选择产品" 
+              clearable
+              filterable
+            >
+              <el-option 
+                v-for="item in productOptions" 
+                :key="item.name" 
+                :label="item.name" 
+                :value="item.name"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="优先级">
+            <el-select 
+              v-model="searchForm.priority" 
+              placeholder="请选择优先级" 
+              clearable
+            >
+              <el-option label="高" value="高" />
+              <el-option label="中" value="中" />
+              <el-option label="低" value="低" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="状态">
+            <el-select 
+              v-model="searchForm.status" 
+              placeholder="请选择状态" 
+              clearable
+            >
+              <el-option label="草稿" value="草稿" />
+              <el-option label="激活" value="激活" />
+              <el-option label="禁用" value="禁用" />
+              <el-option label="归档" value="归档" />
+            </el-select>
+          </el-form-item>
+        </div>
       </el-form>
+      
+      <!-- 第三列：搜索按钮 -->
+      <div class="search-buttons">
+        <!-- 展开/收起按钮 -->
+        <el-button 
+          v-if="showToggleButton" 
+          @click="searchExpanded = !searchExpanded"
+          text
+          :title="searchExpanded ? '收起' : '展开'"
+        >
+          <el-icon :class="{ 'rotated': searchExpanded }"><ArrowDown /></el-icon>
+        </el-button>
+        <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <el-button @click="handleReset">重置</el-button>
+      </div>
     </div>
 
     <!-- 数据表格 -->
@@ -106,6 +137,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="module" label="所属模块" width="150" />
+      <el-table-column prop="product" label="所属产品" width="120" />
       <el-table-column label="标签" width="250">
         <template #default="{ row }">
           <el-tag 
@@ -188,7 +220,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, ArrowDown, View, Edit, CopyDocument, Delete } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
@@ -197,11 +229,28 @@ import {
   deleteTestCase,
   copyTestCase,
   batchUpdateCaseStatus,
-  getModules
+  getModules,
+  getAllProducts
 } from '@/api/uitest'
 import { useAutoSearch } from '@/composables/useAutoSearch'
 
 const router = useRouter()
+
+// 搜索表单展开/收起状态
+const searchExpanded = ref(false)  // 默认折叠，只显示一行
+const searchFieldsWrapper = ref(null)
+
+// 根据搜索框数量判断是否显示展开按钮（超过4个就显示）
+const showToggleButton = computed(() => {
+  // 测试用例有5个搜索条件，超过4个，显示展开按钮
+  return 5 > 4
+})
+
+onMounted(() => {
+  loadData()
+  loadModules()
+  loadProducts()
+})
 
 // 表格数据
 const tableData = ref([])
@@ -215,12 +264,14 @@ const selectedRows = ref([])
 const searchForm = reactive({
   name: '',
   module: '',
+  product: '',
   priority: '',
   status: ''
 })
 
 // 选项列表
 const moduleOptions = ref([])
+const productOptions = ref([])
 
 // 获取状态类型
 const getStatusType = (status) => {
@@ -271,6 +322,16 @@ const loadModules = async () => {
   }
 }
 
+// 加载产品选项
+const loadProducts = async () => {
+  try {
+    const products = await getAllProducts()
+    productOptions.value = products || []
+  } catch (error) {
+    console.error('加载产品失败:', error)
+  }
+}
+
 // 搜索
 const handleSearch = () => {
   currentPage.value = 1
@@ -281,6 +342,7 @@ const handleSearch = () => {
 const handleReset = () => {
   searchForm.name = ''
   searchForm.module = ''
+  searchForm.product = ''
   searchForm.priority = ''
   searchForm.status = ''
   currentPage.value = 1
@@ -436,19 +498,13 @@ const batchDelete = (caseIds) => {
   }).catch(() => {})
 }
 
-// 页面加载
-onMounted(() => {
-  loadData()
-  loadModules()
-})
-
 // 配置自动搜索
 useAutoSearch({
   searchForm,
   currentPage,
   onSearch: loadData,
   inputFields: ['name'],                  // 输入框字段（防抖搜索）
-  selectFields: ['module', 'priority', 'status'], // 下拉框字段（立即搜索）
+  selectFields: ['module', 'product', 'priority', 'status'], // 下拉框字段（立即搜索）
   debounceDelay: 500                      // 防抖延迟 0.5秒
 })
 </script>

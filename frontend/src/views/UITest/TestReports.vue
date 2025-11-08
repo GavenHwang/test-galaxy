@@ -2,21 +2,28 @@
   <div class="page-container">
     <!-- 搜索筛选区 -->
     <div class="page-header">
+      <!-- 第一列：左侧操作按钮 -->
       <div></div>
+      
+      <!-- 第二列：搜索表单 -->
       <el-form :inline="true" :model="searchForm">
-        <el-form-item label="测试单ID">
-          <el-input 
-            v-model="searchForm.test_task_id" 
-            placeholder="请输入测试单ID" 
-            clearable
-            @keyup.enter="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
+        <div class="search-fields-wrapper expanded">
+          <el-form-item label="测试单ID">
+            <el-input 
+              v-model="searchForm.test_task_id" 
+              placeholder="请输入测试单ID" 
+              clearable
+              @keyup.enter="handleSearch"
+            />
+          </el-form-item>
+        </div>
       </el-form>
+      
+      <!-- 第三列：搜索按钮 -->
+      <div class="search-buttons">
+        <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <el-button @click="handleReset">重置</el-button>
+      </div>
     </div>
 
     <!-- 数据表格 -->

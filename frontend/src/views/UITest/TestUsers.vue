@@ -2,56 +2,63 @@
   <div class="page-container">
     <!-- 页面头部 -->
     <div class="page-header">
+      <!-- 第一列：左侧操作按钮 -->
       <div>
         <el-button type="primary" @click="handleCreate">
           <el-icon><Plus /></el-icon>
           新建用户
         </el-button>
       </div>
+      
+      <!-- 第二列：搜索表单 -->
       <el-form :inline="true" :model="searchForm">
-        <el-form-item label="用户名">
-          <el-input 
-            v-model="searchForm.username" 
-            placeholder="请输入用户名" 
-            clearable
-            @keyup.enter="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="产品">
-          <el-select 
-            v-model="searchForm.product" 
-            placeholder="请选择产品" 
-            clearable
-            filterable
-          >
-            <el-option 
-              v-for="item in productOptions" 
-              :key="item" 
-              :label="item" 
-              :value="item"
+        <div class="search-fields-wrapper expanded">
+          <el-form-item label="用户名">
+            <el-input 
+              v-model="searchForm.username" 
+              placeholder="请输入用户名" 
+              clearable
+              @keyup.enter="handleSearch"
             />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="角色">
-          <el-select 
-            v-model="searchForm.role_name" 
-            placeholder="请选择角色" 
-            clearable
-            filterable
-          >
-            <el-option 
-              v-for="item in roleOptions" 
-              :key="item" 
-              :label="item" 
-              :value="item"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
+          </el-form-item>
+          <el-form-item label="角色">
+            <el-select 
+              v-model="searchForm.role_name" 
+              placeholder="请选择角色" 
+              clearable
+              filterable
+            >
+              <el-option 
+                v-for="item in searchRoleOptions" 
+                :key="item" 
+                :label="item" 
+                :value="item"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="产品">
+            <el-select 
+              v-model="searchForm.product" 
+              placeholder="请选择产品" 
+              clearable
+              filterable
+            >
+              <el-option 
+                v-for="item in productOptions" 
+                :key="item.name" 
+                :label="item.name" 
+                :value="item.name"
+              />
+            </el-select>
+          </el-form-item>
+        </div>
       </el-form>
+      
+      <!-- 第三列：搜索按钮 -->
+      <div class="search-buttons">
+        <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <el-button @click="handleReset">重置</el-button>
+      </div>
     </div>
 
     <!-- 数据表格 -->
@@ -220,7 +227,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
+import { ref, reactive, onMounted, getCurrentInstance, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, View, Hide, Edit, Delete } from '@element-plus/icons-vue'
 import {
@@ -252,7 +259,9 @@ const searchForm = reactive({
 
 // 产品和角色选项
 const productOptions = ref([])
-const roleOptions = ref([])
+const roleOptions = ref([]) // 当前显示的角色选项（根据产品过滤后的，用于表单）
+const allRoleOptions = ref([]) // 所有角色选项（不过滤产品）
+const searchRoleOptions = ref([]) // 搜索框的角色选项（根据搜索框产品过滤）
 
 // 密码显示状态
 const passwordVisible = ref({})
@@ -350,23 +359,32 @@ const loadData = async () => {
 const loadOptions = async () => {
   try {
     // 注意：响应拦截器在 code===200 时直接返回 data，所以这里收到的就是数组
-    const [products, roles] = await Promise.all([
-      getAllProducts(),  // 从 test_products 表获取
-      getRoles()
-    ])
+    const products = await getAllProducts()  // 从 test_products 表获取
     
     console.log('产品列表:', products)
-    console.log('角色列表:', roles)
     
     // 直接使用返回的数组数据
     productOptions.value = products || []
-    roleOptions.value = roles || []
     
     console.log('产品选项已设置:', productOptions.value)
-    console.log('角色选项已设置:', roleOptions.value)
   } catch (error) {
     console.error('加载选项失败:', error)
     ElMessage.error('加载选项失败: ' + (error.message || error))
+  }
+}
+
+// 根据产品加载角色列表
+const loadRolesByProduct = async (product) => {
+  try {
+    const roles = await getRoles(product)  // 传入product参数进行过滤
+    console.log('角色列表:', roles)
+    roleOptions.value = roles || []
+    console.log('角色选项已设置:', roleOptions.value)
+    return roles
+  } catch (error) {
+    console.error('加载角色失败:', error)
+    ElMessage.error('加载角色失败: ' + (error.message || error))
+    return []
   }
 }
 
@@ -424,6 +442,8 @@ const handleCreate = () => {
   resetForm()
   dialogVisible.value = true
   loadOptions()
+  // 清空角色选项，等待选择产品后再加载
+  roleOptions.value = []
 }
 
 // 编辑用户
@@ -444,6 +464,10 @@ const handleEdit = (row) => {
   
   dialogVisible.value = true
   loadOptions()
+  // 根据产品加载对应的角色列表
+  if (row.product) {
+    loadRolesByProduct(row.product)
+  }
 }
 
 // 删除用户
@@ -556,6 +580,40 @@ const handleDialogClose = () => {
 onMounted(() => {
   loadData()
   loadOptions()
+  // 初始加载所有角色用于搜索框
+  loadRolesByProduct().then(roles => {
+    searchRoleOptions.value = roles || []
+  })
+})
+
+// 监听产品选择变化，联动更新角色列表（表单）
+watch(() => formData.product, (newProduct) => {
+  if (newProduct) {
+    // 清空当前选择的角色
+    formData.role_name = ''
+    // 根据新选择的产品加载角色列表
+    loadRolesByProduct(newProduct)
+  } else {
+    // 产品为空时，清空角色列表
+    roleOptions.value = []
+    formData.role_name = ''
+  }
+})
+
+// 监听搜索框产品变化，联动更新角色列表（搜索框）
+watch(() => searchForm.product, async (newProduct) => {
+  if (newProduct) {
+    // 清空当前选择的角色
+    searchForm.role_name = ''
+    // 根据新选择的产品加载角色列表
+    const roles = await loadRolesByProduct(newProduct)
+    searchRoleOptions.value = roles || []
+  } else {
+    // 产品为空时，加载所有角色
+    const roles = await loadRolesByProduct()
+    searchRoleOptions.value = roles || []
+    searchForm.role_name = ''
+  }
 })
 
 // 配置自动搜索

@@ -244,15 +244,14 @@ async def update_test_user(user_id: int, data: TestUserUpdateSchema):
 
 
 @router.delete("/{user_id}", summary="删除测试用户")
-async def delete_test_user(user_id: int, force: bool = Query(False, description="强制删除（级联删除关联）")):
+async def delete_test_user(user_id: int):
     """
     删除测试用户
     
     业务规则：
-    - 检查是否有元素权限关联
-    - 检查是否有用例权限关联
-    - 如有关联且force=False，返回错误提示
-    - 如force=True，级联删除关联记录
+    - 直接删除测试用户
+    - 不检查角色权限关联（因为多个用户可能使用相同角色）
+    - 角色权限由角色字典管理，不受用户删除影响
     """
     try:
         user = await TestCommonUser.get_or_none(id=user_id)
@@ -260,27 +259,7 @@ async def delete_test_user(user_id: int, force: bool = Query(False, description=
         if not user:
             return ResponseSchema.error(msg="测试用户不存在", code=404)
         
-        # 检查关联
-        element_perms_count = await TestUIElementPermission.filter(
-            role_name=user.role_name
-        ).count()
-        
-        case_perms_count = await TestUICasePermission.filter(
-            role_name=user.role_name
-        ).count()
-        
-        if (element_perms_count > 0 or case_perms_count > 0) and not force:
-            return ResponseSchema.error(
-                msg=f"该测试用户角色已关联{element_perms_count}个元素权限和{case_perms_count}个用例权限，请先解除关联或使用强制删除",
-                code=400
-            )
-        
-        # 如果强制删除，先删除关联记录
-        if force:
-            await TestUIElementPermission.filter(role_name=user.role_name).delete()
-            await TestUICasePermission.filter(role_name=user.role_name).delete()
-        
-        # 删除用户
+        # 直接删除用户
         await user.delete()
         
         return ResponseSchema.success(msg="删除成功")
